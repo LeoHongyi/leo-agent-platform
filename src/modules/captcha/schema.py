@@ -1,12 +1,9 @@
 from pydantic import BaseModel
 
-class CaptchaResponse(BaseModel):
-
+class CaptchaRead(BaseModel):
     key: str
-    images: str
+    image: str  # data:image/png;base64,...
 
-
-class  VerifyCaptchaRequest(BaseModel):
-
+class CaptchaVerifyRequest(BaseModel):
     key: str
     code: str

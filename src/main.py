@@ -7,6 +7,7 @@ from src.infra.database import engine
 from src.core.exceptions import register_exception_handlers
 from src.middlewares.logging import LoggingMiddleware
 from src.modules.user.api import router as user_router
+from src.modules.captcha.api import router as captcha_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -33,6 +34,8 @@ def create_app() -> FastAPI:
 
     # 注册模块路由
     app.include_router(user_router, prefix="/api/v1")
+
+    app.include_router(captcha_router, prefix="/api/v1")
 
     return app
 
