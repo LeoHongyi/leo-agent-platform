@@ -1,20 +1,26 @@
 from typing import Any
 
+from redis.asyncio import Redis
+from sqlalchemy import select
+
 from src.core.exceptions import BizException
 from src.modules.role.schema import RoleUpdate
-from src.modules.role.model import Role
+from src.modules.role.model import Role, user_roles
 from src.modules.role.schema import RoleCreate
 from src.modules.permission.repository import PermissionRepository
 from src.modules.role.repository import RoleRepository
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.core.base_schema import PageResult
 from src.core.deps import PageParams
+from src.utils.permission_cache import PermissionCache
 
 
 class RoleService:
-    def __init__(self, db: AsyncSession):
+    def __init__(self, db: AsyncSession, redis: Redis | None = None):
         self.repo = RoleRepository(db)
         self.permission_repo = PermissionRepository(db)
+        self.db = db
+        self.perm_cache = PermissionCache(redis) if redis else None
 
     async def create_role(self, data: RoleCreate) -> Role:
         # 检查 code 是否已存在
@@ -79,4 +85,12 @@ class RoleService:
         # 5. flush + refresh
         await self.repo.update(role)
         # 6. 返回更新后的 role（会自动带上新的 permissions）
+        stmt = select(user_roles.c.user_id).where(user_roles.c.role_id == role_id)
+        result = await self.db.execute(stmt)
+        affected_user_ids = [row[0] for row in result.fetchall()]
+
+        # 批量清除缓存（权限和角色两个 Key 一起删）
+        if self.perm_cache and affected_user_ids:
+            await self.perm_cache.delete_user_cache_batch(affected_user_ids)
+
         return role

@@ -1,19 +1,24 @@
 from datetime import datetime
-from sqlalchemy.ext.asyncio import AsyncSession
+
 from redis.asyncio import Redis
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from src.core.exceptions import BizException
-from src.modules.user.repository import UserRepository
 from src.modules.auth.schema import LoginRequest, TokenResponse
+from src.modules.user.repository import UserRepository
+from src.utils.permission_cache import PermissionCache
 from src.utils.jwt_utils import encode_jwt
 from src.utils.password_utils import verify_password
 
 CAPTCHA_PREFIX = "captcha:"
+
 
 class AuthService:
     def __init__(self, db: AsyncSession, redis: Redis):
         self.user_repo = UserRepository(db)
         self.redis = redis
         self.db = db
+        self.permission_cache = PermissionCache(redis)
 
     async def login(self, data: LoginRequest) -> TokenResponse:
         # 1. 验证验证码
@@ -46,3 +51,7 @@ class AuthService:
         token = encode_jwt({"sub": str(user.id), "username": user.username})
 
         return TokenResponse(access_token=token)
+
+    async def logout(self, *, user_id: int) -> None:
+        """登出时清除当前用户的权限和角色缓存。"""
+        await self.permission_cache.delete_user_cache(user_id)

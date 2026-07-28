@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field
 
+
 class LoginRequest(BaseModel):
     username: str = Field(..., description="用户名")
     password: str = Field(..., description="密码")
@@ -10,3 +11,8 @@ class LoginRequest(BaseModel):
 class TokenResponse(BaseModel):
     access_token: str = Field(..., description="访问令牌")
     token_type: str = Field(default="bearer", description="令牌类型")
+
+
+class AccessCodesResponse(BaseModel):
+    permissions: list[str] = Field(description="当前用户的权限 code")
+    roles: list[str] = Field(description="当前用户的角色 code")

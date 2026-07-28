@@ -3,6 +3,7 @@ import jwt
 
 SECRET_KEY = "e7b6e89119d3d77d8a8b4c9aba7a425903e0658bff817637893e44bf1d581a54"
 ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 # 配置OAuth2 Bearer 模式
 from fastapi.security import OAuth2PasswordBearer
@@ -11,7 +12,9 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 def encode_jwt(payload: dict) -> str:
     payload_copy = payload.copy()
     # 更新过期时间为30分钟后。注意使用 utc 时间
-    payload_copy["exp"] = datetime.now(timezone.utc) + timedelta(minutes=30)
+    payload_copy["exp"] = datetime.now(timezone.utc) + timedelta(
+        minutes=ACCESS_TOKEN_EXPIRE_MINUTES
+    )
     payload_copy["iat"] = datetime.now(timezone.utc)
 
     token = jwt.encode(payload_copy, key =SECRET_KEY, algorithm=ALGORITHM)
