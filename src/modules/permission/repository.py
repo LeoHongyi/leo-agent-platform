@@ -13,3 +13,6 @@ class PermissionRepository(BaseRepository[Permission]):
         return await self.db.scalar(
             select(Permission).filter(Permission.code == code)
         )
+    async def get_by_ids(self, ids: list) -> list[Permission]:
+        result =  await self.db.scalars(select(Permission).where(Permission.id.in_(ids)))
+        return result.all()
