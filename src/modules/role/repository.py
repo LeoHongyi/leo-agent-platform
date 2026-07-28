@@ -20,3 +20,12 @@ class RoleRepository(BaseRepository[Role]):
         stmt = select(Role).where(Role.id.in_(ids))
         result = await self.db.execute(stmt)
         return result.scalars().all()
+
+    async def delete_by_id(self, role_id):
+        # 根据 ID 删除角色
+        stmt = select(Role).where(Role.id == role_id)
+        result = await self.db.execute(stmt)
+        role = result.scalar_one_or_none()
+        if role:
+            await self.db.delete(role)
+            await self.db.commit()
