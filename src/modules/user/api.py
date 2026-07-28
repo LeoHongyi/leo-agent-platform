@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.core.deps import get_current_user
+from src.core.deps import get_current_user, PageParams
 from src.infra.database import get_db
-from src.core.base_schema import ResponseSchema
+from src.core.base_schema import ResponseSchema, PageResult
 from src.modules.user.schema import UserCreate, UserRead, UserWithRolesRead, UserAssignRoles
 from src.modules.user.service import UserService
 from src.modules.user.model import User
@@ -30,14 +30,19 @@ async def get_me(current_user: User = Depends(get_current_user)):
     return ResponseSchema(data=UserRead.model_validate(current_user))
 
 
-@router.get("", response_model=ResponseSchema[list[UserRead]])
+@router.get(
+    "",
+    response_model=ResponseSchema[PageResult[UserRead]],
+    summary="分页搜索用户",
+)
 async def list_users(
-    offset: int = 0,
-    limit: int = 100,
+    params: PageParams = Depends(),
     svc: UserService = Depends(get_user_service),
 ):
-    users = await svc.list_users(offset, limit)
-    return ResponseSchema(data=[UserRead.model_validate(u) for u in users])
+    page_result = await svc.list_users(params)
+    # 需要把 ORM 对象转成 Pydantic 对象
+    page_result.items = [UserRead.model_validate(u) for u in page_result.items]
+    return ResponseSchema(data=page_result)
 
 
 @router.get("/{user_id}", response_model=ResponseSchema[UserWithRolesRead])
