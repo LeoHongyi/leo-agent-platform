@@ -9,6 +9,7 @@ from src.middlewares.logging import LoggingMiddleware
 from src.modules.user.api import router as user_router
 from src.modules.captcha.api import router as captcha_router
 from src.modules.auth.api import router as auth_router
+from src.modules.permission.api import router as permission_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -38,6 +39,7 @@ def create_app() -> FastAPI:
 
     app.include_router(captcha_router, prefix="/api/v1")
     app.include_router(auth_router, prefix="/api/v1")
+    app.include_router(permission_router, prefix="/api/v1")
     return app
 
 app = create_app()

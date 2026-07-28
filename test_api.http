@@ -1,0 +1,6 @@
+@base_url = http://127.0.0.1:8000/api/v1
+@access_token = replace-with-access-token
+
+GET {{base_url}}/users/me
+Accept: application/json
+Authorization: Bearer {{access_token}}

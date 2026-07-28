@@ -14,6 +14,7 @@ from src.core.config import get_settings
 # from src.modules.user.model import User  # noqa: F401  每新增模块在此导入
 from src.core.base_model import Base
 import src.modules.user.model  # noqa: F401  每新增模块在此导入
+import src.modules.role.model  # noqa: F401
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
