@@ -1,9 +1,11 @@
 from fastapi import APIRouter, Depends
+from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.deps import get_current_user, PageParams
 from src.infra.database import get_db
 from src.core.base_schema import ResponseSchema, PageResult
+from src.infra.redis_cache import get_redis_client
 from src.modules.user.schema import UserCreate, UserRead, UserWithRolesRead, UserAssignRoles
 from src.modules.user.service import UserService
 from src.modules.user.model import User
@@ -11,8 +13,11 @@ from src.modules.user.model import User
 router = APIRouter(prefix="/users", tags=["User"])
 
 
-def get_user_service(db: AsyncSession = Depends(get_db)) -> UserService:
-    return UserService(db)
+def get_user_service(
+    db: AsyncSession = Depends(get_db),
+    redis: Redis = Depends(get_redis_client),
+) -> UserService:
+    return UserService(db, redis)
 
 
 @router.post("", response_model=ResponseSchema[UserRead])
@@ -60,7 +65,7 @@ async def assign_roles_to_user(
     role_ids: UserAssignRoles,
     svc: UserService = Depends(get_user_service),
 ):
-    user = await svc.assign_roles(user_id, role_ids)
+    user = await svc.assign_roles(user_id, role_ids.role_ids)
     return ResponseSchema(data=UserRead.model_validate(user))
 
 # GET   /api/v1/users/{user_id}/roles   查看用户的角色列表
