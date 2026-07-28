@@ -1,8 +1,10 @@
 from datetime import datetime
 
 from sqlalchemy import DateTime, String
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.core.base_model import BaseModel
+from src.modules.role.model import user_roles
+
 
 class User(BaseModel):
     __tablename__ = "users"
@@ -13,3 +15,8 @@ class User(BaseModel):
     is_active: Mapped[bool] = mapped_column(default=True, comment="是否启用")
     is_superuser: Mapped[bool] = mapped_column(default=False, comment="是否为超级管理员")
     last_login: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, comment="最后登录时间")
+    roles: Mapped[list["Role"]]= relationship(
+        "Role",
+        secondary=user_roles,
+        lazy="selectin",
+    )
