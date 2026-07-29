@@ -18,6 +18,10 @@ class Settings(BaseSettings):
     REDIS_PASSWORD: str = ""
     REDIS_DB: int = 0
 
+    # Model provider
+    PROVIDER_ENCRYPTION_KEY: str = ""
+    PROVIDER_CONNECT_TIMEOUT_SECONDS: float = 10.0
+
     LOG_LEVEL: str = "DEBUG"
     LOG_DIR: str = "logs"
 

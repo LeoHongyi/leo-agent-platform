@@ -11,6 +11,10 @@ from src.modules.captcha.api import router as captcha_router
 from src.modules.auth.api import router as auth_router
 from src.modules.permission.api import router as permission_router
 from src.modules.role.api import router as role_router
+from src.modules.provider.api import router as provider_router
+from src.modules.model.api import router as model_router
+from src.modules.prompt.api import router as prompt_router
+from src.modules.KnowledgeBase.api import router as knowledge_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -41,8 +45,14 @@ def create_app() -> FastAPI:
     app.include_router(captcha_router, prefix="/api/v1")
     app.include_router(auth_router, prefix="/api/v1")
     app.include_router(permission_router, prefix="/api/v1")
-
     app.include_router(role_router, prefix="/api/v1")
+
+    app.include_router(provider_router, prefix="/api/v1")
+    app.include_router(model_router, prefix="/api/v1")
+
+    app.include_router(prompt_router, prefix="/api/v1")
+
+    app.include_router(knowledge_router, prefix="/api/v1")
     return app
 
 app = create_app()
