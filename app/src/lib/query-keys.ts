@@ -40,4 +40,10 @@ export const queryKeys = {
     versions: (promptId: number) =>
       ["prompts", promptId, "versions"] as const,
   },
+  tools: {
+    all: ["tools"] as const,
+    list: (params: ListParams) => ["tools", "list", params] as const,
+    detail: (toolId: number) =>
+      ["tools", "detail", toolId] as const,
+  },
 } as const

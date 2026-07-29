@@ -144,7 +144,7 @@
         },
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "BearerAuth": []
           }
         ]
       }
@@ -409,7 +409,7 @@
         },
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "BearerAuth": []
           }
         ]
       }
@@ -435,7 +435,7 @@
         },
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "BearerAuth": []
           }
         ]
       }
@@ -1004,7 +1004,7 @@
         "operationId": "create_provider_api_v1_providers_post",
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "BearerAuth": []
           }
         ],
         "requestBody": {
@@ -1048,7 +1048,7 @@
         "operationId": "list_providers_api_v1_providers_get",
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -1131,7 +1131,7 @@
         "operationId": "get_provider_api_v1_providers__provider_id__get",
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -1176,7 +1176,7 @@
         "operationId": "update_provider_api_v1_providers__provider_id__put",
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -1231,7 +1231,7 @@
         "operationId": "delete_provider_api_v1_providers__provider_id__delete",
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -1278,7 +1278,7 @@
         "operationId": "test_connection_api_v1_providers__provider_id__test_post",
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -1325,7 +1325,7 @@
         "operationId": "create_model_api_v1_models_post",
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "BearerAuth": []
           }
         ],
         "requestBody": {
@@ -1369,7 +1369,7 @@
         "operationId": "list_models_api_v1_models_get",
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -1471,7 +1471,7 @@
         "operationId": "get_model_api_v1_models__model_id__get",
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -1516,7 +1516,7 @@
         "operationId": "update_model_api_v1_models__model_id__put",
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -1571,7 +1571,7 @@
         "operationId": "delete_model_api_v1_models__model_id__delete",
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -1618,7 +1618,7 @@
         "operationId": "create_prompt_api_v1_prompts_post",
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "BearerAuth": []
           }
         ],
         "requestBody": {
@@ -1662,7 +1662,7 @@
         "operationId": "list_prompts_api_v1_prompts_get",
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -1745,7 +1745,7 @@
         "operationId": "get_prompt_api_v1_prompts__prompt_id__get",
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -1790,7 +1790,7 @@
         "operationId": "update_prompt_api_v1_prompts__prompt_id__put",
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -1845,7 +1845,7 @@
         "operationId": "delete_prompt_api_v1_prompts__prompt_id__delete",
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -1892,7 +1892,7 @@
         "operationId": "publish_prompt_api_v1_prompts__prompt_id__publish_post",
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -1956,7 +1956,7 @@
         "operationId": "get_versions_api_v1_prompts__prompt_id__versions_get",
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -2003,7 +2003,7 @@
         "operationId": "rollback_prompt_api_v1_prompts__prompt_id__rollback_post",
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -2060,7 +2060,7 @@
         "operationId": "create_kb_api_v1_knowledge_bases_post",
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "BearerAuth": []
           }
         ],
         "requestBody": {
@@ -2104,7 +2104,7 @@
         "operationId": "list_kbs_api_v1_knowledge_bases_get",
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -2187,7 +2187,7 @@
         "operationId": "get_kb_api_v1_knowledge_bases__kb_id__get",
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -2232,7 +2232,7 @@
         "operationId": "update_kb_api_v1_knowledge_bases__kb_id__put",
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -2287,7 +2287,7 @@
         "operationId": "delete_kb_api_v1_knowledge_bases__kb_id__delete",
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -2334,7 +2334,7 @@
         "operationId": "upload_document_api_v1_knowledge_bases__kb_id__documents_post",
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -2389,7 +2389,7 @@
         "operationId": "list_documents_api_v1_knowledge_bases__kb_id__documents_get",
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -2481,7 +2481,7 @@
         "operationId": "delete_document_api_v1_knowledge_bases__kb_id__documents__doc_id__delete",
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -2537,7 +2537,7 @@
         "operationId": "list_segments_api_v1_knowledge_bases__kb_id__segments_get",
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -2629,7 +2629,7 @@
         "operationId": "update_segment_api_v1_knowledge_bases__kb_id__segments__seg_id__put",
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -2693,7 +2693,7 @@
         "operationId": "delete_segment_api_v1_knowledge_bases__kb_id__segments__seg_id__delete",
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -2723,6 +2723,431 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ResponseSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tools": {
+      "post": {
+        "tags": [
+          "工具管理"
+        ],
+        "summary": "注册工具",
+        "operationId": "create_tool_api_v1_tools_post",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ToolCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchema_ToolRead_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "工具管理"
+        ],
+        "summary": "工具列表",
+        "operationId": "list_tools_api_v1_tools_get",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "页码，从1开始",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "页码，从1开始"
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "description": "每页条数",
+              "default": 10,
+              "title": "Page Size"
+            },
+            "description": "每页条数"
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "搜索关键词",
+              "title": "Keyword"
+            },
+            "description": "搜索关键词"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchema_PageResult_ToolRead__"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tools/{tool_id}": {
+      "get": {
+        "tags": [
+          "工具管理"
+        ],
+        "summary": "工具详情",
+        "operationId": "get_tool_api_v1_tools__tool_id__get",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "tool_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Tool Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchema_ToolRead_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "工具管理"
+        ],
+        "summary": "更新工具",
+        "operationId": "update_tool_api_v1_tools__tool_id__put",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "tool_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Tool Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ToolUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchema_ToolRead_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "工具管理"
+        ],
+        "summary": "删除工具",
+        "operationId": "delete_tool_api_v1_tools__tool_id__delete",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "tool_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Tool Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchema_NoneType_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tools/{tool_id}/enable": {
+      "post": {
+        "tags": [
+          "工具管理"
+        ],
+        "summary": "启用工具",
+        "operationId": "enable_tool_api_v1_tools__tool_id__enable_post",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "tool_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Tool Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchema_ToolRead_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tools/{tool_id}/disable": {
+      "post": {
+        "tags": [
+          "工具管理"
+        ],
+        "summary": "禁用工具",
+        "operationId": "disable_tool_api_v1_tools__tool_id__disable_post",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "tool_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Tool Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchema_ToolRead_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tools/{tool_id}/test": {
+      "post": {
+        "tags": [
+          "工具管理"
+        ],
+        "summary": "测试工具",
+        "operationId": "test_tool_api_v1_tools__tool_id__test_post",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "tool_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Tool Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ToolTestRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchema_ToolTestResponse_"
                 }
               }
             }
@@ -2919,6 +3344,38 @@
           "created_at"
         ],
         "title": "DocumentRead"
+      },
+      "FunctionDefinitionSchema": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name",
+            "description": "函数名称"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Description",
+            "description": "函数描述"
+          },
+          "parameters": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Parameters",
+            "description": "JSON Schema 参数定义"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "description",
+          "parameters"
+        ],
+        "title": "FunctionDefinitionSchema",
+        "description": "OpenAI Function Calling 格式"
       },
       "HTTPValidationError": {
         "properties": {
@@ -3666,6 +4123,34 @@
         },
         "type": "object",
         "title": "PageResult[SegmentRead]"
+      },
+      "PageResult_ToolRead_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ToolRead"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total",
+            "default": 0
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page",
+            "default": 1
+          },
+          "page_size": {
+            "type": "integer",
+            "title": "Page Size",
+            "default": 20
+          }
+        },
+        "type": "object",
+        "title": "PageResult[ToolRead]"
       },
       "PageResult_UserRead_": {
         "properties": {
@@ -4812,6 +5297,32 @@
         "type": "object",
         "title": "ResponseSchema[PageResult[SegmentRead]]"
       },
+      "ResponseSchema_PageResult_ToolRead__": {
+        "properties": {
+          "code": {
+            "type": "integer",
+            "title": "Code",
+            "default": 200
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "success"
+          },
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PageResult_ToolRead_"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "title": "ResponseSchema[PageResult[ToolRead]]"
+      },
       "ResponseSchema_PageResult_UserRead__": {
         "properties": {
           "code": {
@@ -5019,6 +5530,58 @@
         },
         "type": "object",
         "title": "ResponseSchema[TokenResponse]"
+      },
+      "ResponseSchema_ToolRead_": {
+        "properties": {
+          "code": {
+            "type": "integer",
+            "title": "Code",
+            "default": 200
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "success"
+          },
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ToolRead"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "title": "ResponseSchema[ToolRead]"
+      },
+      "ResponseSchema_ToolTestResponse_": {
+        "properties": {
+          "code": {
+            "type": "integer",
+            "title": "Code",
+            "default": 200
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "success"
+          },
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ToolTestResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "title": "ResponseSchema[ToolTestResponse]"
       },
       "ResponseSchema_UserRead_": {
         "properties": {
@@ -5384,6 +5947,309 @@
         ],
         "title": "TokenResponse"
       },
+      "ToolCreate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name",
+            "description": "工具名称"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 5000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description",
+            "description": "工具描述"
+          },
+          "type": {
+            "$ref": "#/components/schemas/ToolType"
+          },
+          "config": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Config",
+            "description": "工具配置"
+          },
+          "function_definition": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FunctionDefinitionSchema"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "OpenAI Function Calling 定义"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "type"
+        ],
+        "title": "ToolCreate",
+        "description": "注册工具参数"
+      },
+      "ToolRead": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "type": {
+            "$ref": "#/components/schemas/ToolType"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ToolStatus"
+          },
+          "config": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Config"
+          },
+          "function_definition": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Function Definition"
+          },
+          "call_count_7d": {
+            "type": "integer",
+            "title": "Call Count 7D"
+          },
+          "success_rate": {
+            "type": "number",
+            "title": "Success Rate"
+          },
+          "avg_latency": {
+            "type": "integer",
+            "title": "Avg Latency"
+          },
+          "created_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "description",
+          "type",
+          "status",
+          "config",
+          "function_definition",
+          "call_count_7d",
+          "success_rate",
+          "avg_latency",
+          "created_by"
+        ],
+        "title": "ToolRead",
+        "description": "工具响应"
+      },
+      "ToolStatus": {
+        "type": "string",
+        "enum": [
+          "enabled",
+          "disabled",
+          "error"
+        ],
+        "title": "ToolStatus",
+        "description": "工具状态"
+      },
+      "ToolTestRequest": {
+        "properties": {
+          "input": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Input",
+            "description": "测试输入参数"
+          }
+        },
+        "type": "object",
+        "required": [
+          "input"
+        ],
+        "title": "ToolTestRequest",
+        "description": "测试工具请求"
+      },
+      "ToolTestResponse": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "title": "Success"
+          },
+          "output": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Output"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "latency_ms": {
+            "type": "integer",
+            "title": "Latency Ms",
+            "default": 0
+          },
+          "status_code": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status Code"
+          }
+        },
+        "type": "object",
+        "required": [
+          "success"
+        ],
+        "title": "ToolTestResponse",
+        "description": "测试工具响应"
+      },
+      "ToolType": {
+        "type": "string",
+        "enum": [
+          "builtin",
+          "http_api",
+          "custom_function"
+        ],
+        "title": "ToolType",
+        "description": "工具类型"
+      },
+      "ToolUpdate": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 5000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "type": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ToolType"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "config": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Config"
+          },
+          "function_definition": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FunctionDefinitionSchema"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "title": "ToolUpdate",
+        "description": "更新工具参数"
+      },
       "UserAssignRoles": {
         "properties": {
           "role_ids": {
@@ -5530,14 +6396,11 @@
       }
     },
     "securitySchemes": {
-      "OAuth2PasswordBearer": {
-        "type": "oauth2",
-        "flows": {
-          "password": {
-            "scopes": {},
-            "tokenUrl": "/api/v1/auth/login"
-          }
-        }
+      "BearerAuth": {
+        "type": "http",
+        "description": "粘贴登录接口返回的 JWT Token；无需输入 Bearer 前缀",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
       }
     }
   }

@@ -31,4 +31,13 @@ export const endpoints = {
     `/api/backend/api/v1/prompts/${promptId}/versions`,
   promptRollback: (promptId: number) =>
     `/api/backend/api/v1/prompts/${promptId}/rollback`,
+  tools: "/api/backend/api/v1/tools",
+  tool: (toolId: number) =>
+    `/api/backend/api/v1/tools/${toolId}`,
+  toolEnable: (toolId: number) =>
+    `/api/backend/api/v1/tools/${toolId}/enable`,
+  toolDisable: (toolId: number) =>
+    `/api/backend/api/v1/tools/${toolId}/disable`,
+  toolTest: (toolId: number) =>
+    `/api/backend/api/v1/tools/${toolId}/test`,
 } as const

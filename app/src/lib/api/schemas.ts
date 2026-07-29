@@ -418,6 +418,114 @@ export const promptFormSchema = z.object({
     .max(100, "变量不能超过 100 个"),
 })
 
+export const toolTypeSchema = z.enum([
+  "builtin",
+  "http_api",
+  "custom_function",
+])
+
+export const toolStatusSchema = z.enum(["disabled", "enabled", "error"])
+
+const jsonObjectTextSchema = z.string().refine((value) => {
+  if (!value.trim()) return true
+  try {
+    const parsed: unknown = JSON.parse(value)
+    return (
+      typeof parsed === "object" &&
+      parsed !== null &&
+      !Array.isArray(parsed)
+    )
+  } catch {
+    return false
+  }
+}, "请输入有效的 JSON 对象")
+
+export const toolFunctionDefinitionSchema = z.object({
+  name: z.string().min(1),
+  description: z.string().min(1),
+  parameters: z.record(z.string(), z.unknown()),
+})
+
+export const toolSchema = z.object({
+  id: z.number().int().positive(),
+  name: z.string(),
+  description: z.string().nullable(),
+  type: toolTypeSchema,
+  status: toolStatusSchema,
+  config: z.record(z.string(), z.unknown()).nullable(),
+  function_definition: toolFunctionDefinitionSchema.nullable(),
+  call_count_7d: z.number().int().nonnegative(),
+  success_rate: z.number().min(0).max(100),
+  avg_latency: z.number().nonnegative(),
+  created_by: z.string().nullable(),
+})
+
+export const toolCreateSchema = z.object({
+  name: z.string().trim().min(1, "请输入工具名称").max(200),
+  description: z.string().trim().max(5_000, "描述不能超过 5000 个字符").nullable(),
+  type: toolTypeSchema,
+  config: z.record(z.string(), z.unknown()).nullable(),
+  function_definition: toolFunctionDefinitionSchema.nullable(),
+})
+
+export const toolUpdateSchema = toolCreateSchema.partial()
+
+export const toolTestInputSchema = z.object({
+  input: z.record(z.string(), z.unknown()),
+})
+
+export const toolTestResultSchema = z.object({
+  success: z.boolean(),
+  output: z.record(z.string(), z.unknown()).nullable(),
+  error: z.string().nullable(),
+  latency_ms: z.number().int().nonnegative(),
+  status_code: z.number().int().nullable(),
+})
+
+export const toolFormSchema = z
+  .object({
+    name: z.string().trim().min(1, "请输入工具名称").max(200),
+    description: z.string().trim().max(5_000, "描述不能超过 5000 个字符"),
+    type: toolTypeSchema,
+    config_json: jsonObjectTextSchema,
+    function_name: z.string().trim().max(200, "函数名称不能超过 200 个字符"),
+    function_description: z
+      .string()
+      .trim()
+      .max(1_000, "函数说明不能超过 1000 个字符"),
+    parameters_json: jsonObjectTextSchema,
+  })
+  .superRefine((value, context) => {
+    const hasFunctionDefinition = Boolean(
+      value.function_name ||
+        value.function_description ||
+        value.parameters_json.trim(),
+    )
+    if (!hasFunctionDefinition) return
+
+    if (!value.function_name) {
+      context.addIssue({
+        code: "custom",
+        path: ["function_name"],
+        message: "请输入函数名称",
+      })
+    }
+    if (!value.function_description) {
+      context.addIssue({
+        code: "custom",
+        path: ["function_description"],
+        message: "请输入函数说明",
+      })
+    }
+    if (!value.parameters_json.trim()) {
+      context.addIssue({
+        code: "custom",
+        path: ["parameters_json"],
+        message: "请输入参数 Schema",
+      })
+    }
+  })
+
 export const assignRolesSchema = z.object({
   role_ids: z.array(z.number().int().positive()),
 })
@@ -461,3 +569,14 @@ export type PromptUpdateInput = z.input<typeof promptUpdateSchema>
 export type PromptPublishInput = z.input<typeof promptPublishSchema>
 export type PromptRollbackInput = z.input<typeof promptRollbackSchema>
 export type PromptFormInput = z.input<typeof promptFormSchema>
+export type ToolType = z.infer<typeof toolTypeSchema>
+export type ToolStatus = z.infer<typeof toolStatusSchema>
+export type ToolFunctionDefinition = z.infer<
+  typeof toolFunctionDefinitionSchema
+>
+export type Tool = z.infer<typeof toolSchema>
+export type ToolCreateInput = z.input<typeof toolCreateSchema>
+export type ToolUpdateInput = z.input<typeof toolUpdateSchema>
+export type ToolTestInput = z.input<typeof toolTestInputSchema>
+export type ToolTestResult = z.infer<typeof toolTestResultSchema>
+export type ToolFormInput = z.input<typeof toolFormSchema>

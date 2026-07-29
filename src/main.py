@@ -15,6 +15,7 @@ from src.modules.provider.api import router as provider_router
 from src.modules.model.api import router as model_router
 from src.modules.prompt.api import router as prompt_router
 from src.modules.KnowledgeBase.api import router as knowledge_router
+from src.modules.tool.api import router as tool_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -31,6 +32,7 @@ def create_app() -> FastAPI:
         title=settings.APP_NAME,
         debug=settings.APP_DEBUG,
         lifespan=lifespan,
+        swagger_ui_parameters={"persistAuthorization": True},
     )
 
     # 异常处理
@@ -53,6 +55,8 @@ def create_app() -> FastAPI:
     app.include_router(prompt_router, prefix="/api/v1")
 
     app.include_router(knowledge_router, prefix="/api/v1")
+
+    app.include_router(tool_router, prefix="/api/v1")
     return app
 
 app = create_app()
