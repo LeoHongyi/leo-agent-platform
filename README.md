@@ -1,112 +1,167 @@
 # Leo Agent Platform
 
-Leo Agent Platform 是一个面向智能体平台的异步后端基础工程。项目基于 FastAPI 构建，提供用户、图片验证码、登录认证、JWT 当前用户、权限管理以及角色关联的数据模型，并为后续扩展智能体、知识库、工具和任务编排等业务模块预留清晰的分层结构。
+Leo Agent Platform is a full-stack foundation for building and operating AI agent products. The backend uses FastAPI with asynchronous SQLAlchemy, MySQL, Redis, JWT authentication, and modular business services. The administration console uses Next.js App Router and a same-origin BFF so access tokens remain in secure, HttpOnly cookies.
 
-## 功能概览
+The repository currently provides authentication and RBAC, model provider and model management, versioned prompt management, and the initial knowledge-base data model.
 
-- 异步 FastAPI API 与统一响应结构
-- MySQL 8.4 + SQLAlchemy 2.0 异步数据访问
-- Alembic 数据库版本管理
-- Redis 图片验证码与一次性校验
-- bcrypt 密码哈希
-- JWT 登录认证与当前用户接口
-- 用户、权限 CRUD
-- 用户、角色、权限多对多关系模型
-- 请求日志、统一业务异常与应用生命周期管理
-- Docker Compose 本地基础设施
-- pytest 单元测试
+## Current Implementation
 
-## 技术栈
+### Backend
 
-| 类别 | 技术 |
+- Asynchronous FastAPI APIs with a consistent response envelope
+- MySQL 8.4 persistence through SQLAlchemy 2.0 and `asyncmy`
+- Alembic migrations for application tables
+- Redis-backed image CAPTCHA and permission caching
+- bcrypt password hashing and JWT authentication
+- User, role, and permission CRUD with paginated search
+- User-role and role-permission assignment with cache invalidation
+- Model provider CRUD with encrypted API keys and live connection testing
+- Model CRUD with provider filtering and foreign-key validation
+- Prompt CRUD with draft, publish, version history, and rollback workflows
+- Request logging, application lifecycle handling, and business exception mapping
+- Automated backend tests with pytest and pytest-asyncio
+
+### Administration Console
+
+- Next.js 16 App Router, React 19, and strict TypeScript
+- Login with image CAPTCHA and an HttpOnly cookie session
+- Protected dashboard and same-origin BFF route allowlist
+- User, role, permission, provider, model, and prompt management pages
+- Provider connection tests and masked API-key handling
+- Prompt publishing, version history, and rollback interactions
+- TanStack Query for remote state and cache invalidation
+- Zustand for client-only UI state
+- React Hook Form and Zod for form and API-boundary validation
+- shadcn/ui and Tailwind CSS 4 for the component system
+- Vitest contract and component tests
+
+For the detailed delivery snapshot, see [Implementation Summary](docs/IMPLEMENTATION_SUMMARY.md). The product and architecture specification is in [Project Specification](docs/PROJECT_SPEC.md), and the checked-in API contract is in [OpenAPI JSON](docs/openai.json).
+
+## Technology Stack
+
+| Area | Technology |
 | --- | --- |
-| Web 框架 | FastAPI、Uvicorn |
-| 数据校验 | Pydantic、pydantic-settings |
-| 数据库 | MySQL 8.4、SQLAlchemy 2.0、asyncmy |
-| 数据迁移 | Alembic |
-| 缓存 | Redis |
-| 认证安全 | PyJWT、bcrypt、图片验证码 |
-| 对象存储 | MinIO（Docker 基础设施已提供） |
-| 测试 | pytest、pytest-asyncio |
+| Backend | Python 3.13, FastAPI, Uvicorn |
+| Validation | Pydantic, pydantic-settings |
+| Database | MySQL 8.4, SQLAlchemy 2.0, asyncmy |
+| Migrations | Alembic |
+| Cache | Redis |
+| Security | PyJWT, bcrypt, Fernet, image CAPTCHA |
+| Object storage | MinIO infrastructure |
+| Backend tests | pytest, pytest-asyncio, HTTPX |
+| Frontend | Next.js 16, React 19, TypeScript |
+| UI | shadcn/ui, Tailwind CSS 4 |
+| Frontend state | TanStack Query, Zustand |
+| Forms and validation | React Hook Form, Zod |
+| Frontend tests | Vitest, Testing Library |
 
-## 架构
+## Architecture
 
-项目采用按业务模块组织的分层架构。HTTP 处理、业务规则和数据访问相互隔离，所有数据库和缓存 I/O 均使用异步调用。
+The backend is organized by business module. HTTP handling, business rules, and data access remain isolated, and all database and cache I/O is asynchronous.
 
 ```mermaid
 flowchart LR
-    Client[客户端 / Swagger] --> Middleware[日志与异常处理中间件]
-    Middleware --> API[API 路由层]
-    API --> Service[Service 业务层]
-    Service --> Repository[Repository 数据访问层]
+    Browser[Browser] --> BFF[Next.js BFF]
+    BFF --> API[FastAPI API]
+    Swagger[Swagger / API Client] --> API
+    API --> Service[Service Layer]
+    Service --> Repository[Repository Layer]
     Repository --> MySQL[(MySQL)]
     Service --> Redis[(Redis)]
-    API --> Schema[Schema 数据契约]
-    Repository --> Model[SQLAlchemy Model]
+    API --> Schema[Pydantic Schemas]
+    Repository --> Model[SQLAlchemy Models]
 ```
 
-### 分层职责
+### Layer Responsibilities
 
-| 层 | 目录/文件 | 职责 |
+| Layer | Location | Responsibility |
 | --- | --- | --- |
-| API | `src/modules/*/api.py` | 声明路由、依赖、请求参数和响应模型 |
-| Schema | `src/modules/*/schema.py` | 定义 Pydantic 请求与响应数据结构 |
-| Service | `src/modules/*/service.py` | 业务校验、流程编排和异常处理 |
-| Repository | `src/modules/*/repository.py` | 封装 SQLAlchemy 查询与持久化操作 |
-| Model | `src/modules/*/model.py` | 定义数据库表和 ORM 关系 |
-| Core | `src/core/` | 配置、依赖、基础模型、统一响应与异常 |
-| Infra | `src/infra/` | 数据库和 Redis 等基础设施连接 |
+| API | `src/modules/*/api.py` | Routes, dependencies, request parameters, and response models |
+| Schema | `src/modules/*/schema.py` | Pydantic request and response contracts |
+| Service | `src/modules/*/service.py` | Business validation, orchestration, and cache invalidation |
+| Repository | `src/modules/*/repository.py` | SQLAlchemy queries and persistence |
+| Model | `src/modules/*/model.py` | Database tables and ORM relationships |
+| Core | `src/core/` | Configuration, dependencies, base classes, responses, and exceptions |
+| Infrastructure | `src/infra/` | Database and Redis connections |
+| BFF | `app/src/app/api/` | Session handling and allowlisted backend forwarding |
 
-### 目录结构
+## Repository Layout
 
 ```text
 .
-├── alembic/                    # Alembic 环境与迁移脚本
+├── alembic/                    # Alembic environment and migrations
+├── app/                        # Next.js administration console
+├── docs/
+│   ├── IMPLEMENTATION_SUMMARY.md
+│   ├── PROJECT_SPEC.md
+│   └── openai.json             # OpenAPI contract snapshot
 ├── docker/
-│   ├── docker-compose.yaml     # MySQL、Redis、MinIO
-│   └── .env.example            # Docker 服务配置模板
+│   ├── docker-compose.yaml     # MySQL, Redis, and MinIO
+│   └── .env.example
 ├── src/
-│   ├── core/                   # 配置、依赖、基础类、异常和日志
-│   ├── infra/                  # MySQL 与 Redis 连接
-│   ├── middlewares/            # HTTP 中间件
+│   ├── core/
+│   ├── infra/
+│   ├── middlewares/
 │   ├── modules/
-│   │   ├── auth/               # 登录和 Token 签发
-│   │   ├── captcha/            # 图片验证码
-│   │   ├── permission/         # 权限 CRUD
-│   │   ├── role/               # 角色及关联模型
-│   │   └── user/               # 用户 CRUD 与当前用户
-│   ├── utils/                  # JWT 与密码工具
-│   └── main.py                 # FastAPI 应用入口
-├── test/                       # 自动化测试
-├── .env.example                # 应用配置模板
+│   │   ├── auth/
+│   │   ├── captcha/
+│   │   ├── KnowledgeBase/
+│   │   ├── model/
+│   │   ├── permission/
+│   │   ├── prompt/
+│   │   ├── provider/
+│   │   ├── role/
+│   │   └── user/
+│   ├── utils/
+│   └── main.py
+├── test/                       # Backend automated tests
+├── .env.example
 ├── alembic.ini
 ├── requirements.txt
-└── test_api.http               # IDE HTTP Client 请求示例
+└── test_api.http
 ```
 
-## 业务模块
+## Business Modules
 
-| 模块 | 当前能力 |
+| Module | Available capabilities |
 | --- | --- |
-| User | 创建、列表、详情、当前登录用户；密码使用 bcrypt 哈希保存 |
-| Captcha | 生成 Base64 图片验证码，在 Redis 中限时保存并一次性消费 |
-| Auth | 校验验证码和账号密码，更新最后登录时间并签发 JWT |
-| Permission | 权限编码的创建、查询、更新和删除 |
-| Role | 角色模型、角色权限关系、用户角色关系和数据访问基础 |
+| User | Create, paginated search, detail, current user, role assignment |
+| Captcha | Base64 image CAPTCHA stored temporarily in Redis and consumed once |
+| Auth | CAPTCHA and password validation, login timestamp, JWT issue and logout |
+| Permission | CRUD, paginated search, and permission-code lookup |
+| Role | CRUD, paginated search, permission assignment, user-role relationships |
+| Provider | Authenticated CRUD, encrypted API keys, masked responses, live connection tests |
+| Model | Authenticated CRUD, provider relationship, provider filter, capabilities and pricing |
+| Prompt | Authenticated CRUD, draft state, semantic versions, immutable snapshots, rollback |
+| KnowledgeBase | Initial CRUD, document metadata, segment management, schemas, repositories, and migration foundation |
 
-## 本地启动
+## Prompt Lifecycle
 
-所有命令都应在项目根目录执行：
+Prompts use an explicit draft and version workflow:
+
+```text
+Create draft
+  -> first publish creates v1.0
+  -> edit published prompt creates unpublished changes
+  -> publish again creates v1.1
+  -> rollback restores a selected snapshot
+```
+
+Published versions retain independent snapshots of prompt content, variables, metadata, author, changelog, and publication time.
+
+## Local Development
+
+Run backend commands from the repository root so Pydantic Settings can load the root `.env` file:
 
 ```bash
 cd /Users/leo/leo-agent-app/leo-agent-platform
 ```
 
-项目当前通过相对路径读取根目录 `.env`。如果从父目录启动，应用可能无法读取数据库密码并出现 `using password: NO`。
+Starting Uvicorn from another working directory can prevent the application from loading database credentials and may result in a MySQL `using password: NO` error.
 
-### 1. 准备 Python 环境
+### 1. Prepare Python
 
-项目开发环境使用 Python 3.13。可以使用 Conda：
+The development environment uses Python 3.13:
 
 ```bash
 conda create -n leo python=3.13
@@ -114,31 +169,31 @@ conda activate leo
 python -m pip install -r requirements.txt
 ```
 
-如果环境已经存在：
+If the environment already exists:
 
 ```bash
 conda activate leo
 python -m pip install -r requirements.txt
 ```
 
-### 2. 配置环境变量
+### 2. Configure Environment Variables
 
-复制应用和 Docker 配置模板：
+Copy the application and Docker templates:
 
 ```bash
 cp .env.example .env
 cp docker/.env.example docker/.env
 ```
 
-然后修改两个文件中的占位值。以下配置必须保持一致：
+Keep these values synchronized:
 
-| 应用 `.env` | Docker `docker/.env` | 说明 |
+| Application `.env` | Docker `docker/.env` | Purpose |
 | --- | --- | --- |
-| `DB_PASSWORD` | `MYSQL_ROOT_PASSWORD` | MySQL root 密码 |
-| `DB_NAME` | `MYSQL_DATABASE` | 数据库名称 |
-| `REDIS_PASSWORD` | `REDIS_PASSWORD` | Redis 密码 |
+| `DB_PASSWORD` | `MYSQL_ROOT_PASSWORD` | MySQL root password |
+| `DB_NAME` | `MYSQL_DATABASE` | Database name |
+| `REDIS_PASSWORD` | `REDIS_PASSWORD` | Redis password |
 
-应用在宿主机运行时，推荐使用：
+For a backend process running on the host:
 
 ```dotenv
 DB_HOST=127.0.0.1
@@ -147,11 +202,24 @@ REDIS_HOST=127.0.0.1
 REDIS_PORT=6379
 ```
 
-真实 `.env` 文件包含密钥，不要提交到 Git。
+Provider API keys use a dedicated Fernet encryption key. Generate one before the first start:
 
-### 3. 启动基础设施
+```bash
+python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+```
 
-确保 Docker Desktop 已启动，然后执行：
+Add it to `.env`:
+
+```dotenv
+PROVIDER_ENCRYPTION_KEY=<generated-fernet-key>
+PROVIDER_CONNECT_TIMEOUT_SECONDS=10
+```
+
+Existing provider API keys cannot be decrypted if this key is lost. Back it up in a production secret manager. Never commit the real `.env` file, tokens, or credentials.
+
+### 3. Start Infrastructure
+
+Start Docker Desktop, then run:
 
 ```bash
 docker compose --env-file docker/.env \
@@ -159,7 +227,7 @@ docker compose --env-file docker/.env \
   up -d
 ```
 
-查看服务状态：
+Inspect the services:
 
 ```bash
 docker compose --env-file docker/.env \
@@ -167,38 +235,38 @@ docker compose --env-file docker/.env \
   ps
 ```
 
-默认端口：
+Default endpoints:
 
-| 服务 | 地址 |
+| Service | Address |
 | --- | --- |
 | MySQL | `127.0.0.1:3306` |
 | Redis | `127.0.0.1:6379` |
 | MinIO API | `http://127.0.0.1:9000` |
 | MinIO Console | `http://127.0.0.1:9001` |
 
-### 4. 执行数据库迁移
+### 4. Apply Database Migrations
 
 ```bash
 alembic upgrade head
 ```
 
-查看当前版本和迁移头：
+Inspect the current revision and migration heads:
 
 ```bash
 alembic current
 alembic heads
 ```
 
-新增或修改 Model 后，可生成迁移：
+After changing an ORM model:
 
 ```bash
 alembic revision --autogenerate -m "describe_change"
 alembic upgrade head
 ```
 
-生成的迁移必须经过人工检查后再提交。
+Always review autogenerated migrations before committing them.
 
-### 5. 启动 API
+### 5. Start the Backend
 
 ```bash
 python -m uvicorn src.main:app \
@@ -207,20 +275,33 @@ python -m uvicorn src.main:app \
   --port 8000
 ```
 
-启动后可访问：
+Available development endpoints:
 
-| 页面 | 地址 |
+| Page | Address |
 | --- | --- |
-| 健康检查 | `http://127.0.0.1:8000/health` |
+| Health check | `http://127.0.0.1:8000/health` |
 | Swagger UI | `http://127.0.0.1:8000/docs` |
 | ReDoc | `http://127.0.0.1:8000/redoc` |
 | OpenAPI JSON | `http://127.0.0.1:8000/openapi.json` |
 
-## PyCharm 启动配置
+### 6. Start the Administration Console
 
-打开 `Run → Edit Configurations…`，新增一个 `Python` 配置：
+Keep the backend running and open another terminal:
 
-| 配置项 | 值 |
+```bash
+cd app
+cp .env.example .env.local
+pnpm install
+pnpm dev
+```
+
+Open `http://localhost:3000`. The console connects to `http://127.0.0.1:8000` by default. Next.js stores the JWT in an HttpOnly cookie; browser JavaScript never receives or persists it.
+
+## PyCharm Configuration
+
+Create a Python run configuration under **Run → Edit Configurations**:
+
+| Setting | Value |
 | --- | --- |
 | Name | `FastAPI` |
 | Run | `Module name` |
@@ -228,117 +309,77 @@ python -m uvicorn src.main:app \
 | Parameters | `src.main:app --reload --host 127.0.0.1 --port 8000` |
 | Python interpreter | `/opt/miniconda3/envs/leo/bin/python` |
 | Working directory | `$PROJECT_DIR$` |
-| Environment variables | 留空 |
+| Environment variables | Leave empty unless intentionally overriding `.env` |
 
-不要在 PyCharm 中配置空的 `DB_PASSWORD=`，因为进程环境变量的优先级高于 `.env`。
+Do not define an empty `DB_PASSWORD=` in PyCharm. Process environment variables take precedence over values loaded from `.env`.
 
-## API 调试流程
+## API Overview
 
-### 1. 创建用户
+Provider, model, prompt, and knowledge-base endpoints require a Bearer token. The Next.js console adds it through the BFF. Some legacy user, role, and permission routes still require endpoint-level authorization hardening.
 
-```http
-POST /api/v1/users
-Content-Type: application/json
-
-{
-  "username": "test",
-  "email": "test@example.com",
-  "password": "123456"
-}
-```
-
-### 2. 获取图片验证码
-
-```http
-GET /api/v1/captcha
-```
-
-响应中的 `data.key` 用于登录，`data.image` 是可以直接展示的 Base64 图片。
-
-### 3. 登录
-
-```http
-POST /api/v1/auth/login
-Content-Type: application/json
-
-{
-  "username": "test",
-  "password": "123456",
-  "captcha_key": "<captcha-key>",
-  "captcha_code": "<captcha-code>"
-}
-```
-
-### 4. 获取当前用户
-
-```http
-GET /api/v1/users/me
-Authorization: Bearer <access-token>
-```
-
-固定路径 `/users/me` 必须注册在动态路径 `/users/{user_id}` 之前，否则 `me` 会被当作整数 ID 解析。
-
-### 5. 权限接口
-
-| 方法 | 路径 | 说明 |
+| Resource | Base path | Main operations |
 | --- | --- | --- |
-| `GET` | `/api/v1/permissions/` | 权限列表 |
-| `GET` | `/api/v1/permissions/{permission_id}` | 权限详情 |
-| `POST` | `/api/v1/permissions/` | 创建权限 |
-| `PUT` | `/api/v1/permissions/{permission_id}` | 更新权限 |
-| `DELETE` | `/api/v1/permissions/{permission_id}` | 删除权限 |
+| Authentication | `/api/v1/auth` | Login and logout |
+| Users | `/api/v1/users` | CRUD, current user, role assignment |
+| Roles | `/api/v1/roles` | CRUD and permission assignment |
+| Permissions | `/api/v1/permissions` | CRUD and paginated search |
+| Providers | `/api/v1/providers` | CRUD and connection test |
+| Models | `/api/v1/models` | CRUD and provider filtering |
+| Prompts | `/api/v1/prompts` | CRUD, publish, versions, rollback |
 
-## 测试
+The fixed `/users/me` route must remain registered before `/users/{user_id}` so FastAPI does not attempt to parse `me` as an integer.
 
-运行全部测试：
+## Validation
 
-```bash
-python -m pytest -q
-```
-
-仅运行某个目录：
-
-```bash
-python -m pytest test/modules/captcha -q
-python -m pytest test/utils -q
-```
-
-提交前建议执行：
+Run backend checks from the repository root:
 
 ```bash
 python -m compileall -q src alembic test
 python -m pytest -q
+```
+
+Run frontend checks from `app/`:
+
+```bash
+pnpm check
+pnpm build
+```
+
+Run the final whitespace check from the repository root:
+
+```bash
 git diff --check
 ```
 
-## 配置优先级
+## Configuration Precedence
 
-Pydantic Settings 的配置优先级为：
+Pydantic Settings resolves values in this order:
 
 ```text
-系统环境变量 > 项目根目录 .env > Settings 默认值
+process environment > repository .env > Settings defaults
 ```
 
-如果 `.env` 已填写但应用仍使用空密码，请检查：
+If the application still uses an empty database password:
 
-1. Uvicorn 的 Working directory 是否为项目根目录。
-2. PyCharm 是否设置了空的 `DB_PASSWORD`。
-3. 修改 `.env` 后是否重新启动了应用。
-4. 应用 `DB_PASSWORD` 是否与 Docker `MYSQL_ROOT_PASSWORD` 一致。
+1. Confirm that Uvicorn's working directory is the repository root.
+2. Remove any empty `DB_PASSWORD` override from PyCharm.
+3. Restart the application after changing `.env`.
+4. Confirm that `DB_PASSWORD` matches Docker's `MYSQL_ROOT_PASSWORD`.
 
-## 开发约定
+## Development Conventions
 
-新增业务模块时，建议按以下顺序实现：
+Implement new backend modules in this order:
 
-1. 定义 SQLAlchemy Model，并创建 Alembic migration。
-2. 定义 Pydantic Schema。
-3. 实现 Repository 数据访问。
-4. 实现 Service 业务逻辑。
-5. 定义 API 路由并在 `src/main.py` 注册。
-6. 添加单元测试和接口调试示例。
+1. Define SQLAlchemy models and add an Alembic migration.
+2. Define Pydantic request and response schemas.
+3. Implement repository data access.
+4. Implement service-level business rules.
+5. Add API routes and register the router in `src/main.py`.
+6. Add automated tests and update the OpenAPI snapshot.
+7. Add the frontend schema, BFF allowlist, query functions, UI, and tests.
 
-API 层保持轻量，只负责参数、依赖和响应；业务校验放在 Service；数据库查询放在 Repository。真实密钥、Token、数据库数据和本地日志不得提交。
+Keep API handlers small, place business rules in services, and isolate database queries in repositories. Do not commit secrets, tokens, database files, generated logs, or local environment files.
 
 ## License
 
-本项目使用 [Apache License 2.0](LICENSE)。
+This project is licensed under the [Apache License 2.0](LICENSE).
