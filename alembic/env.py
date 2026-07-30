@@ -19,6 +19,8 @@ import src.modules.provider.model  # noqa: F401
 import src.modules.model.model #noqa: F401 unused-import
 import src.modules.prompt.model  # noqa: F401
 import src.modules.KnowledgeBase.model # noqa: F401
+import src.modules.tool.model  # noqa: F401
+
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

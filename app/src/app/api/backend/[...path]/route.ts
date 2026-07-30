@@ -37,6 +37,9 @@ const allowedRoutes = [
   /^(GET|PUT|DELETE) \/api\/v1\/prompts\/\d+$/,
   /^(POST) \/api\/v1\/prompts\/\d+\/(?:publish|rollback)$/,
   /^(GET) \/api\/v1\/prompts\/\d+\/versions$/,
+  /^(GET|POST) \/api\/v1\/tools$/,
+  /^(GET|PUT|DELETE) \/api\/v1\/tools\/\d+$/,
+  /^(POST) \/api\/v1\/tools\/\d+\/(?:enable|disable|test)$/,
   /^(GET|POST) \/api\/v1\/captcha(?:\/verify)?$/,
   /^(GET) \/health$/,
 ]

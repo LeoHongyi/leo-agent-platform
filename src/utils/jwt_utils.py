@@ -1,13 +1,18 @@
 from datetime import datetime, timedelta, timezone
 import jwt
+from fastapi.security import HTTPBearer
 
 SECRET_KEY = "e7b6e89119d3d77d8a8b4c9aba7a425903e0658bff817637893e44bf1d581a54"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
-# 配置OAuth2 Bearer 模式
-from fastapi.security import OAuth2PasswordBearer
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
+# Swagger 中直接粘贴登录接口返回的 JWT，无需模拟 OAuth2 密码流。
+bearer_scheme = HTTPBearer(
+    scheme_name="BearerAuth",
+    description="粘贴登录接口返回的 JWT Token；无需输入 Bearer 前缀",
+    bearerFormat="JWT",
+    auto_error=False,
+)
 
 def encode_jwt(payload: dict) -> str:
     payload_copy = payload.copy()

@@ -15,6 +15,7 @@ import {
   ShieldCheck,
   Sun,
   Users,
+  Wrench,
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
@@ -55,6 +56,7 @@ const navigation = [
   { href: "/providers", label: "模型供应商", icon: CloudCog },
   { href: "/models", label: "模型管理", icon: Cpu },
   { href: "/prompts", label: "Prompt 管理", icon: ScrollText },
+  { href: "/tools", label: "工具管理", icon: Wrench },
 ]
 
 export function DashboardShell({

@@ -46,6 +46,18 @@ This document summarizes the implementation currently prepared in the working br
 - Rollback to a selected historical snapshot
 - Frontend prompt search, pagination, variable editing, publishing, version history, rollback, and deletion
 
+### Tool Management
+
+- Authenticated create, list, detail, update, and delete endpoints
+- Explicit `disabled`, `enabled`, and `error` states
+- Enable and disable state transitions, including recovery from `error`
+- Real HTTP API testing with method, headers, timeout, query, and JSON-body support
+- Failed execution moves an enabled tool to `error`
+- Unsupported built-in and custom-function executors return explicit failures
+- Strict tool type validation and duplicate-name handling
+- Backend contract, executor, schema, and state-machine tests
+- Frontend search, pagination, registration, editing, deletion, state transitions, JSON configuration, and live execution tests
+
 ### Knowledge Base Foundation
 
 - Initial knowledge-base, document, and segment ORM structures
@@ -62,7 +74,7 @@ This document summarizes the implementation currently prepared in the working br
 - Same-origin BFF with explicit method/path allowlisting
 - JWT stored in an HttpOnly cookie
 - Protected dashboard routes
-- User, role, permission, provider, model, and prompt management
+- User, role, permission, provider, model, prompt, and tool management
 - TanStack Query remote-state caching and invalidation
 - Zustand client-only UI state
 - React Hook Form and Zod validation
@@ -78,6 +90,7 @@ The checked-in contract is stored in [`docs/openai.json`](openai.json). The main
 | Providers | `/api/v1/providers`, `/api/v1/providers/{provider_id}`, `/api/v1/providers/{provider_id}/test` |
 | Models | `/api/v1/models`, `/api/v1/models/{model_id}` |
 | Prompts | `/api/v1/prompts`, `/api/v1/prompts/{prompt_id}`, publish, versions, and rollback subpaths |
+| Tools | `/api/v1/tools`, `/api/v1/tools/{tool_id}`, enable, disable, and test subpaths |
 
 ## Verification Baseline
 
@@ -99,7 +112,8 @@ The exact test count may grow as the codebase evolves; command success is the ma
 
 - Knowledge-base APIs are preliminary and do not yet have a frontend.
 - The document upload route records metadata and a placeholder path; real MinIO upload processing is not integrated yet.
-- Agent execution, tool management, and task orchestration remain future modules.
+- Agent execution and task orchestration remain future modules.
+- Tool management currently supports real HTTP API tests; built-in and custom-function runtime executors remain future work.
 - Some backend business errors still use HTTP 200 with a non-200 business `code`; the Next.js BFF normalizes these for browser clients.
 - The OpenAPI snapshot must be refreshed whenever backend routes or schemas change.
 

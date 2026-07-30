@@ -1,4 +1,5 @@
 from fastapi import Depends, Query
+from fastapi.security import HTTPAuthorizationCredentials
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -8,7 +9,7 @@ from src.infra.redis_cache import get_redis_client
 from src.modules.auth.authorization_service import AuthorizationService
 from src.modules.user.model import User
 from src.modules.user.repository import UserRepository
-from src.utils.jwt_utils import oauth2_scheme, verify_jwt
+from src.utils.jwt_utils import bearer_scheme, verify_jwt
 
 
 def _get_user_id_from_token(token: str) -> int:
@@ -20,10 +21,12 @@ def _get_user_id_from_token(token: str) -> int:
 
 
 async def get_current_user_id(
-    token: str = Depends(oauth2_scheme),
+    credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
 ) -> int:
     """从 JWT 中获取当前用户 ID，不访问数据库。"""
-    return _get_user_id_from_token(token)
+    if credentials is None:
+        raise BizException(code=401, message="未登录或 token 已过期")
+    return _get_user_id_from_token(credentials.credentials)
 
 
 async def get_current_user(

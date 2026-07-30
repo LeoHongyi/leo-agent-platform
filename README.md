@@ -2,7 +2,7 @@
 
 Leo Agent Platform is a full-stack foundation for building and operating AI agent products. The backend uses FastAPI with asynchronous SQLAlchemy, MySQL, Redis, JWT authentication, and modular business services. The administration console uses Next.js App Router and a same-origin BFF so access tokens remain in secure, HttpOnly cookies.
 
-The repository currently provides authentication and RBAC, model provider and model management, versioned prompt management, and the initial knowledge-base data model.
+The repository currently provides authentication and RBAC, model provider and model management, versioned prompt management, authenticated tool management, and the initial knowledge-base data model.
 
 ## Current Implementation
 
@@ -18,6 +18,7 @@ The repository currently provides authentication and RBAC, model provider and mo
 - Model provider CRUD with encrypted API keys and live connection testing
 - Model CRUD with provider filtering and foreign-key validation
 - Prompt CRUD with draft, publish, version history, and rollback workflows
+- Tool CRUD, state transitions, and real HTTP API connection testing
 - Request logging, application lifecycle handling, and business exception mapping
 - Automated backend tests with pytest and pytest-asyncio
 
@@ -26,9 +27,10 @@ The repository currently provides authentication and RBAC, model provider and mo
 - Next.js 16 App Router, React 19, and strict TypeScript
 - Login with image CAPTCHA and an HttpOnly cookie session
 - Protected dashboard and same-origin BFF route allowlist
-- User, role, permission, provider, model, and prompt management pages
+- User, role, permission, provider, model, prompt, and tool management pages
 - Provider connection tests and masked API-key handling
 - Prompt publishing, version history, and rollback interactions
+- Tool registration, JSON configuration, state transitions, and live execution tests
 - TanStack Query for remote state and cache invalidation
 - Zustand for client-only UI state
 - React Hook Form and Zod for form and API-boundary validation
@@ -111,6 +113,7 @@ flowchart LR
 │   │   ├── prompt/
 │   │   ├── provider/
 │   │   ├── role/
+│   │   ├── tool/
 │   │   └── user/
 │   ├── utils/
 │   └── main.py
@@ -133,6 +136,7 @@ flowchart LR
 | Provider | Authenticated CRUD, encrypted API keys, masked responses, live connection tests |
 | Model | Authenticated CRUD, provider relationship, provider filter, capabilities and pricing |
 | Prompt | Authenticated CRUD, draft state, semantic versions, immutable snapshots, rollback |
+| Tool | Authenticated CRUD, enabled/disabled/error lifecycle, HTTP execution tests |
 | KnowledgeBase | Initial CRUD, document metadata, segment management, schemas, repositories, and migration foundation |
 
 ## Prompt Lifecycle

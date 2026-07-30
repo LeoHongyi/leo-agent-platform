@@ -30,7 +30,7 @@ Leo Agent Platform 的长期目标是提供一个智能体平台，逐步支持�
 - 任务编排；
 - 对象存储和运行记录。
 
-当前已完成平台基础后端、RBAC、Provider、Model、Prompt 版本管理、知识库后端基础以及主要管理端页面。智能体运行、工具、任务编排和真实 MinIO 文档处理仍未实现。
+当前已完成平台基础后端、RBAC、Provider、Model、Prompt 版本管理、Tool 全栈管理、知识库后端基础以及主要管理端页面。智能体运行、任务编排和真实 MinIO 文档处理仍未实现。
 
 ## 3. 当前状态总览
 
@@ -46,11 +46,12 @@ Leo Agent Platform 的长期目标是提供一个智能体平台，逐步支持�
 | Provider | 已实现 | CRUD、API Key 加密、脱敏响应和真实连接测试 |
 | Model | 已实现 | CRUD、Provider 外键关系和按 Provider 筛选 |
 | Prompt | 已实现 | Draft、发布、版本快照、历史列表和回滚 |
+| Tool | 前后端已实现 | CRUD、鉴权、启用/禁用/error 状态机、JSON 配置和 HTTP API 真实测试 |
 | Knowledge Base | 后端基础已实现 | CRUD、文档元数据和分段管理；真实 MinIO 处理与前端待实现 |
-| 数据库迁移 | 已实现 | Alembic 单线迁移，当前 head 为 `7a9cfbe79ed3` |
-| 自动化测试 | 已实现 | 当前后端基线为 `78 passed`，前端基线为 `22 passed` |
+| 数据库迁移 | 已实现 | Alembic 单线迁移，当前 head 为 `ad7bfa59fd52` |
+| 自动化测试 | 已实现 | 后端与前端测试数量以实际测试命令输出为准 |
 | Docker 基础设施 | 已实现 | MySQL、Redis、MinIO |
-| 前端 | 已实现主要页面 | 登录、工作台、用户、角色、权限、Provider、Model、Prompt |
+| 前端 | 已实现主要页面 | 登录、工作台、用户、角色、权限、Provider、Model、Prompt、Tool |
 | 接口级权限保护 | 未完成 | 权限依赖已经存在，但管理接口尚未普遍接入 |
 | MinIO 业务代码 | 未完成 | 已有知识库文档元数据入口，真实上传仍是占位实现 |
 | 智能体业务 | 未实现 | 尚无对应模块 |
@@ -587,6 +588,7 @@ e47d49fe2ebb
   -> 6d595efa2a58
   -> 8f2c4e1a9b7d
   -> 7a9cfbe79ed3
+  -> ad7bfa59fd52
 ```
 
 新环境迁移后不会自动创建初始管理员、角色或权限，因为仓库尚无 seed/bootstrap 机制。
@@ -1009,8 +1011,9 @@ pnpm dev
 | `/providers` | Provider CRUD、连接测试和加密 API Key 输入 |
 | `/models` | Model CRUD 和 Provider 筛选 |
 | `/prompts` | Prompt CRUD、发布、版本历史和回滚 |
+| `/tools` | Tool CRUD、启停状态流转、Function Calling 配置和真实调用测试 |
 
-不要创建 Agent、Tool 或 Task 的假数据页面；这些模块目前没有后端契约。Knowledge Base 已有初步后端接口，但前端应在真实文件存储流程完成后接入。
+不要创建 Agent 或 Task 的假数据页面；这些模块目前没有后端契约。Knowledge Base 前端应在真实文件存储流程完成后接入。
 
 ## 18. 测试与质量基线
 
@@ -1092,7 +1095,8 @@ pnpm build
 
 ### P2：长期演进
 
-- Agent、Tool、Task 等领域模型和 API；
+- Agent、Task 等领域模型和 API；
+- Tool 的内置工具与自定义函数安全执行器；
 - Knowledge Base 的真实文件存储、解析、分段和向量化；
 - 审计日志；
 - 可观测性和错误追踪；
