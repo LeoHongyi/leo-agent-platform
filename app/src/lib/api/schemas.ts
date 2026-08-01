@@ -526,6 +526,254 @@ export const toolFormSchema = z
     }
   })
 
+export const knowledgeBaseSchema = z.object({
+  id: z.number().int().positive(),
+  name: z.string(),
+  description: z.string().nullable(),
+  status: z.string(),
+  document_count: z.number().int().nonnegative(),
+  segment_count: z.number().int().nonnegative(),
+  embedding_model: z.string(),
+  created_by: z.string().nullable(),
+  created_at: z.string(),
+  updated_at: z.string(),
+})
+
+export const agentTypeSchema = z.enum([
+  "conversation",
+  "tool",
+  "analysis",
+  "creative",
+  "workflow",
+])
+export const agentStatusSchema = z.enum([
+  "draft",
+  "inactive",
+  "active",
+  "error",
+])
+export const retrievalStrategySchema = z.enum([
+  "keyword",
+  "semantic",
+  "hybrid",
+])
+
+export const agentModelConfigSchema = z
+  .object({
+    modelId: z.string().min(1).max(100).nullable(),
+    temperature: z.number().min(0).max(2),
+    maxTokens: z.number().int().min(1).max(1_000_000),
+    topP: z.number().positive().max(1),
+  })
+  .strict()
+
+export const agentPromptConfigSchema = z
+  .object({
+    systemPrompt: z.string().max(100_000),
+    promptTemplateId: z.number().int().positive().nullable(),
+  })
+  .strict()
+
+export const agentRagConfigSchema = z
+  .object({
+    enabled: z.boolean(),
+    knowledgeBaseIds: z.array(z.number().int().positive()).max(50),
+    retrievalStrategy: retrievalStrategySchema,
+    topK: z.number().int().min(1).max(100),
+    similarityThreshold: z.number().min(0).max(1),
+  })
+  .strict()
+
+export const agentToolsConfigSchema = z
+  .object({
+    enabled: z.boolean(),
+    toolIds: z.array(z.number().int().positive()).max(100),
+  })
+  .strict()
+
+export const agentAdvancedConfigSchema = z
+  .object({
+    welcomeMessage: z.string().max(2_000),
+    suggestedQuestions: z.array(z.string().min(1).max(200)).max(20),
+    maxTurns: z.number().int().min(1).max(1_000),
+    timeout: z.number().positive().max(300),
+  })
+  .strict()
+
+export const agentConfigSchema = z
+  .object({
+    model: agentModelConfigSchema,
+    prompt: agentPromptConfigSchema,
+    rag: agentRagConfigSchema,
+    tools: agentToolsConfigSchema,
+    advanced: agentAdvancedConfigSchema,
+  })
+  .strict()
+
+export const agentSchema = z.object({
+  id: z.number().int().positive(),
+  name: z.string(),
+  description: z.string().nullable(),
+  type: agentTypeSchema,
+  status: agentStatusSchema,
+  model_id: z.number().int().positive().nullable(),
+  prompt_id: z.number().int().positive().nullable(),
+  config: agentConfigSchema.nullable(),
+  success_rate: z.number().min(0).max(100),
+  call_count_7d: z.number().int().nonnegative(),
+  version: z.string().nullable(),
+  current_version_id: z.number().int().positive().nullable(),
+  created_by: z.string().nullable(),
+  created_at: z.string(),
+  updated_at: z.string(),
+})
+
+export const agentVersionSchema = z.object({
+  id: z.number().int().positive(),
+  agent_id: z.number().int().positive(),
+  version: z.string(),
+  name: z.string(),
+  description: z.string().nullable(),
+  type: agentTypeSchema,
+  model_id: z.number().int().positive().nullable(),
+  prompt_id: z.number().int().positive().nullable(),
+  config: agentConfigSchema,
+  changelog: z.string().nullable(),
+  is_current: z.boolean(),
+  published_by: z.string().nullable(),
+  published_at: z.string().nullable(),
+})
+
+export const agentCreateSchema = z
+  .object({
+    name: z.string().trim().min(1).max(200),
+    description: z.string().max(5_000).nullable(),
+    type: agentTypeSchema,
+    model_id: z.number().int().positive().nullable(),
+    config: agentConfigSchema,
+  })
+  .strict()
+
+export const agentUpdateSchema = agentCreateSchema.partial().strict()
+
+export const agentPublishSchema = z
+  .object({
+    changelog: z.string().max(500),
+  })
+  .strict()
+
+export const agentRollbackSchema = z
+  .object({
+    version_id: z.number().int().positive(),
+  })
+  .strict()
+
+const agentVariableValueSchema = z.union([
+  z.string(),
+  z.number(),
+  z.boolean(),
+])
+
+export const agentInvokeSchema = z
+  .object({
+    input: z.string().min(1).max(100_000),
+    history: z
+      .array(
+        z
+          .object({
+            role: z.enum(["user", "assistant"]),
+            content: z.string().min(1).max(100_000),
+          })
+          .strict(),
+      )
+      .max(200),
+    variables: z.record(z.string(), agentVariableValueSchema),
+  })
+  .strict()
+
+export const agentInvokeResultSchema = z.object({
+  content: z.string().nullable(),
+  tool_calls: z.array(z.record(z.string(), z.unknown())),
+  usage: z.record(z.string(), z.unknown()).nullable(),
+  model_id: z.string(),
+  latency_ms: z.number().int().nonnegative(),
+})
+
+const agentJsonVariablesSchema = z.string().refine((value) => {
+  try {
+    const parsed: unknown = JSON.parse(value || "{}")
+    return (
+      typeof parsed === "object" &&
+      parsed !== null &&
+      !Array.isArray(parsed) &&
+      Object.values(parsed).every(
+        (item) =>
+          typeof item === "string" ||
+          typeof item === "number" ||
+          typeof item === "boolean",
+      )
+    )
+  } catch {
+    return false
+  }
+}, "请输入只包含字符串、数字或布尔值的 JSON 对象")
+
+export const agentFormSchema = z
+  .object({
+    name: z.string().trim().min(1, "请输入 Agent 名称").max(200),
+    description: z.string().max(5_000, "描述不能超过 5000 个字符"),
+    type: agentTypeSchema,
+    model_id: z.number().int().nonnegative(),
+    temperature: z.number().min(0).max(2),
+    max_tokens: z.number().int().min(1).max(1_000_000),
+    top_p: z.number().positive().max(1),
+    prompt_template_id: z.number().int().nonnegative(),
+    system_prompt: z.string().max(100_000),
+    rag_enabled: z.boolean(),
+    knowledge_base_ids: z.array(z.number().int().positive()).max(50),
+    retrieval_strategy: retrievalStrategySchema,
+    top_k: z.number().int().min(1).max(100),
+    similarity_threshold: z.number().min(0).max(1),
+    tools_enabled: z.boolean(),
+    tool_ids: z.array(z.number().int().positive()).max(100),
+    welcome_message: z.string().max(2_000),
+    suggested_questions: z.string(),
+    max_turns: z.number().int().min(1).max(1_000),
+    timeout: z.number().positive().max(300),
+  })
+  .superRefine((value, context) => {
+    if (value.rag_enabled && value.knowledge_base_ids.length === 0) {
+      context.addIssue({
+        code: "custom",
+        path: ["knowledge_base_ids"],
+        message: "启用 RAG 时至少选择一个知识库",
+      })
+    }
+    if (value.tools_enabled && value.tool_ids.length === 0) {
+      context.addIssue({
+        code: "custom",
+        path: ["tool_ids"],
+        message: "启用工具时至少选择一个工具",
+      })
+    }
+    const questions = value.suggested_questions
+      .split("\n")
+      .map((item) => item.trim())
+      .filter(Boolean)
+    if (questions.length > 20 || questions.some((item) => item.length > 200)) {
+      context.addIssue({
+        code: "custom",
+        path: ["suggested_questions"],
+        message: "最多 20 条推荐问题，每条不超过 200 个字符",
+      })
+    }
+  })
+
+export const agentInvokeFormSchema = z.object({
+  input: z.string().trim().min(1, "请输入测试消息").max(100_000),
+  variables_json: agentJsonVariablesSchema,
+})
+
 export const assignRolesSchema = z.object({
   role_ids: z.array(z.number().int().positive()),
 })
@@ -580,3 +828,18 @@ export type ToolUpdateInput = z.input<typeof toolUpdateSchema>
 export type ToolTestInput = z.input<typeof toolTestInputSchema>
 export type ToolTestResult = z.infer<typeof toolTestResultSchema>
 export type ToolFormInput = z.input<typeof toolFormSchema>
+export type KnowledgeBase = z.infer<typeof knowledgeBaseSchema>
+export type AgentType = z.infer<typeof agentTypeSchema>
+export type AgentStatus = z.infer<typeof agentStatusSchema>
+export type RetrievalStrategy = z.infer<typeof retrievalStrategySchema>
+export type AgentConfig = z.infer<typeof agentConfigSchema>
+export type Agent = z.infer<typeof agentSchema>
+export type AgentVersion = z.infer<typeof agentVersionSchema>
+export type AgentCreateInput = z.input<typeof agentCreateSchema>
+export type AgentUpdateInput = z.input<typeof agentUpdateSchema>
+export type AgentPublishInput = z.input<typeof agentPublishSchema>
+export type AgentRollbackInput = z.input<typeof agentRollbackSchema>
+export type AgentInvokeInput = z.input<typeof agentInvokeSchema>
+export type AgentInvokeResult = z.infer<typeof agentInvokeResultSchema>
+export type AgentFormInput = z.input<typeof agentFormSchema>
+export type AgentInvokeFormInput = z.input<typeof agentInvokeFormSchema>

@@ -40,11 +40,17 @@ const allowedRoutes = [
   /^(GET|POST) \/api\/v1\/tools$/,
   /^(GET|PUT|DELETE) \/api\/v1\/tools\/\d+$/,
   /^(POST) \/api\/v1\/tools\/\d+\/(?:enable|disable|test)$/,
+  /^(GET) \/api\/v1\/knowledge-bases$/,
+  /^(GET|POST) \/api\/v1\/agents$/,
+  /^(GET|PUT|DELETE) \/api\/v1\/agents\/\d+$/,
+  /^(POST) \/api\/v1\/agents\/\d+\/(?:start|stop|publish|rollback|invoke)$/,
+  /^(GET) \/api\/v1\/agents\/\d+\/versions$/,
   /^(GET|POST) \/api\/v1\/captcha(?:\/verify)?$/,
   /^(GET) \/health$/,
 ]
 
 export const dynamic = "force-dynamic"
+export const maxDuration = 310
 
 export async function GET(request: NextRequest, context: RouteContext) {
   return forwardRequest(request, context)
@@ -102,7 +108,7 @@ async function forwardRequest(request: NextRequest, context: RouteContext) {
           ? undefined
           : await request.arrayBuffer(),
       cache: "no-store",
-      signal: AbortSignal.timeout(10_000),
+      signal: AbortSignal.timeout(requestTimeoutMs(path)),
     })
 
     const text = await upstream.text()
@@ -137,6 +143,12 @@ async function forwardRequest(request: NextRequest, context: RouteContext) {
       { status: 502 },
     )
   }
+}
+
+function requestTimeoutMs(path: string) {
+  return /^\/api\/v1\/agents\/\d+\/invoke$/.test(path)
+    ? 305_000
+    : 10_000
 }
 
 function readBusinessCode(payload: unknown) {

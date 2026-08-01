@@ -78,3 +78,38 @@ class SegmentRepository(BaseRepository[Segment]):
         )
         result = await self.db.execute(stmt)
         return result.scalars().all()
+
+    async def retrieve_for_agent(
+        self,
+        *,
+        knowledge_base_ids: list[int],
+        query: str,
+        limit: int,
+    ) -> list[Segment]:
+        """从指定知识库召回与输入匹配的分段。"""
+        if not knowledge_base_ids:
+            return []
+
+        stmt = select(Segment).where(
+            Segment.knowledge_base_id.in_(knowledge_base_ids)
+        )
+        terms = [
+            term
+            for term in query.replace("\n", " ").split(" ")
+            if len(term.strip()) >= 2
+        ][:8]
+        if terms:
+            stmt = stmt.where(
+                or_(
+                    *[
+                        Segment.content.like(f"%{term.strip()}%")
+                        for term in terms
+                    ]
+                )
+            )
+        stmt = stmt.order_by(
+            Segment.hit_count.desc(),
+            Segment.id.desc(),
+        ).limit(limit)
+        result = await self.db.execute(stmt)
+        return list(result.scalars().all())

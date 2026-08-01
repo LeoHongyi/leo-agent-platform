@@ -2,7 +2,7 @@
 
 > 面向 Codex Sol 的项目接手文档
 >
-> 最后核对日期：2026-07-29
+> 最后核对日期：2026-07-31
 >
 > 本文描述项目约束和演进背景；最新交付状态以 [`IMPLEMENTATION_SUMMARY.md`](IMPLEMENTATION_SUMMARY.md) 为准。
 
@@ -12,7 +12,7 @@
 
 开始修改前，应先理解以下三点：
 
-1. 当前仓库具备可运行的 FastAPI 后端、MySQL/Redis 基础设施、认证、RBAC、Provider、Model、Prompt 和知识库基础模块。
+1. 当前仓库具备可运行的 FastAPI 后端、MySQL/Redis 基础设施、认证、RBAC、Provider、Model、Prompt、Tool、Agent 和知识库基础模块。
 2. 根目录下的 `../app` 是已经初始化并完成主要管理页面联调的 Next.js 16 管理端。
 3. 前端使用 Next.js App Router、TypeScript、shadcn/ui、Zustand、TanStack Query、React Hook Form 和 Zod。
 
@@ -30,7 +30,7 @@ Leo Agent Platform 的长期目标是提供一个智能体平台，逐步支持�
 - 任务编排；
 - 对象存储和运行记录。
 
-当前已完成平台基础后端、RBAC、Provider、Model、Prompt 版本管理、Tool 全栈管理、知识库后端基础以及主要管理端页面。智能体运行、任务编排和真实 MinIO 文档处理仍未实现。
+当前已完成平台基础后端、RBAC、Provider、Model、Prompt 版本管理、Tool 全栈管理、Agent 聚合/运行时/管理端联调、知识库后端基础以及主要管理端页面。任务编排、真正的向量检索和真实 MinIO 文档处理仍未实现。
 
 ## 3. 当前状态总览
 
@@ -47,14 +47,14 @@ Leo Agent Platform 的长期目标是提供一个智能体平台，逐步支持�
 | Model | 已实现 | CRUD、Provider 外键关系和按 Provider 筛选 |
 | Prompt | 已实现 | Draft、发布、版本快照、历史列表和回滚 |
 | Tool | 前后端已实现 | CRUD、鉴权、启用/禁用/error 状态机、JSON 配置和 HTTP API 真实测试 |
+| Agent | 前后端已实现 | 强类型聚合配置、鉴权、发布/版本/回滚、状态机、真实 Provider 调用、7 日统计和管理端联调 |
 | Knowledge Base | 后端基础已实现 | CRUD、文档元数据和分段管理；真实 MinIO 处理与前端待实现 |
-| 数据库迁移 | 已实现 | Alembic 单线迁移，当前 head 为 `ad7bfa59fd52` |
+| 数据库迁移 | 已实现 | Alembic 单线迁移，当前 head 为 `6e5073fe3459` |
 | 自动化测试 | 已实现 | 后端与前端测试数量以实际测试命令输出为准 |
 | Docker 基础设施 | 已实现 | MySQL、Redis、MinIO |
-| 前端 | 已实现主要页面 | 登录、工作台、用户、角色、权限、Provider、Model、Prompt、Tool |
+| 前端 | 已实现主要页面 | 登录、工作台、用户、角色、权限、Provider、Model、Prompt、Tool、Agent |
 | 接口级权限保护 | 未完成 | 权限依赖已经存在，但管理接口尚未普遍接入 |
 | MinIO 业务代码 | 未完成 | 已有知识库文档元数据入口，真实上传仍是占位实现 |
-| 智能体业务 | 未实现 | 尚无对应模块 |
 | CI/CD | 未实现 | 仓库中没有现成流水线 |
 
 ## 4. 技术栈
@@ -115,6 +115,7 @@ leo-agent-platform/
 │   ├── infra/                    # 数据库与 Redis 连接
 │   ├── middlewares/              # HTTP 日志中间件
 │   ├── modules/
+│   │   ├── agent/
 │   │   ├── auth/
 │   │   ├── captcha/
 │   │   ├── KnowledgeBase/
@@ -123,6 +124,7 @@ leo-agent-platform/
 │   │   ├── prompt/
 │   │   ├── provider/
 │   │   ├── role/
+│   │   ├── tool/
 │   │   └── user/
 │   ├── utils/                    # JWT、密码、权限缓存工具
 │   └── main.py                   # FastAPI 应用入口
@@ -409,6 +411,41 @@ UserWithRolesRead = UserRead + roles[]
 
 列表和创建路径当前带尾部 `/`，前端端点常量应使用精确路径，避免依赖自动重定向。权限更新不能修改 `code`。
 
+### 9.6 Agent
+
+全部 Agent 路由都要求 Bearer Token：
+
+| 方法 | 路径 | 说明 |
+| --- | --- | --- |
+| POST | `/api/v1/agents` | 创建草稿 |
+| GET | `/api/v1/agents` | 分页和关键词搜索 |
+| GET | `/api/v1/agents/{agent_id}` | 详情 |
+| PUT | `/api/v1/agents/{agent_id}` | 更新非运行中 Agent；产生未发布草稿 |
+| DELETE | `/api/v1/agents/{agent_id}` | 删除非运行中 Agent |
+| POST | `/api/v1/agents/{agent_id}/publish` | 校验聚合并发布新版本 |
+| GET | `/api/v1/agents/{agent_id}/versions` | 获取完整版本快照 |
+| POST | `/api/v1/agents/{agent_id}/rollback` | 回滚到指定历史快照 |
+| POST | `/api/v1/agents/{agent_id}/start` | 启动已发布或错误状态的 Agent |
+| POST | `/api/v1/agents/{agent_id}/stop` | 停止运行中或错误状态的 Agent |
+| POST | `/api/v1/agents/{agent_id}/invoke` | 调用运行中的 Agent |
+
+配置由五个强类型部分组成：`model`、`prompt`、`rag`、`tools` 和 `advanced`。顶层 `model_id` 是平台数据库中的模型主键；`config.model.modelId` 是 Provider 侧模型标识，两者必须指向同一个模型。Prompt、Knowledge Base 和 Tool ID 都会在 Service 层验证，并同时保存 Agent 与知识库、工具的关系表。
+
+状态机：
+
+```text
+创建 -> draft
+draft/inactive -> 发布 -> inactive
+inactive/error -> 启动 -> active
+active/error -> 停止 -> inactive
+active -> 运行时异常 -> error
+draft/inactive -> 回滚 -> inactive
+```
+
+首次发布为 `v1.0`，后续发布按完整历史递增小版本。版本保存名称、描述、类型、模型、Prompt 和完整配置快照；回滚不会删除后续版本。只有 `active` Agent 可以调用。运行时支持 OpenAI-compatible 与 Anthropic Messages 请求，Provider API Key 在使用时解密且不会写入响应或错误信息。
+
+当前 RAG 上下文读取现有关系型知识片段。真正的文档处理、Embedding、向量相似度和语义/混合召回尚未落地，因此不能把当前行为描述为完整向量 RAG。工具函数定义会发送给模型，但服务端尚未执行模型返回的多步 Tool Call。
+
 ## 10. 认证和 RBAC
 
 ### 10.1 当前认证流程
@@ -589,6 +626,7 @@ e47d49fe2ebb
   -> 8f2c4e1a9b7d
   -> 7a9cfbe79ed3
   -> ad7bfa59fd52
+  -> 6e5073fe3459
 ```
 
 新环境迁移后不会自动创建初始管理员、角色或权限，因为仓库尚无 seed/bootstrap 机制。
@@ -634,7 +672,7 @@ Python Run Configuration：
 7. JWT 不写入 `localStorage` 或可由客户端 JavaScript 读取的 Zustand store。
 8. shadcn/ui 组件放在 `components/ui`，业务组件不直接堆进该目录。
 9. 前端展示权限不能代替后端授权。
-10. 先完成用户、角色、权限和登录后台，再扩展尚无后端支持的智能体页面。
+10. Agent 页面必须直接使用已发布的后端 OpenAPI 契约，不复制或猜测聚合配置字段。
 
 ### 12.2 目标目录
 
@@ -1012,18 +1050,15 @@ pnpm dev
 | `/models` | Model CRUD 和 Provider 筛选 |
 | `/prompts` | Prompt CRUD、发布、版本历史和回滚 |
 | `/tools` | Tool CRUD、启停状态流转、Function Calling 配置和真实调用测试 |
+| `/agents` | Agent 聚合配置、发布、版本、回滚、启停、真实调用和删除 |
 
-不要创建 Agent 或 Task 的假数据页面；这些模块目前没有后端契约。Knowledge Base 前端应在真实文件存储流程完成后接入。
+Agent 管理端已按 `../docs/openai.json` 中的强类型配置和状态机完成联调。不要创建 Task 假数据页面；Task 目前没有后端契约。Knowledge Base 前端应在真实文件存储流程完成后接入。
 
 ## 18. 测试与质量基线
 
 ### 18.1 当前后端
 
-当前已验证：
-
-```text
-78 passed
-```
+测试数量随模块增长，不在说明书中固定；以仓库根目录执行完整测试命令的实际成功结果为准。
 
 测试覆盖：
 
@@ -1034,7 +1069,10 @@ pnpm dev
 - 用户、角色、权限分页路由和 Service；
 - 当前用户 access 接口；
 - 权限/角色缓存命中和未命中；
-- 用户角色、角色权限变化后的缓存失效。
+- 用户角色、角色权限变化后的缓存失效；
+- Agent 强类型 Schema、聚合引用校验、状态机和完整版本快照；
+- OpenAI-compatible 与 Anthropic 运行时协议适配；
+- Agent 从创建、发布、启动、调用、停止、再发布、回滚到删除的真实接口联调。
 
 提交后端改动前：
 
@@ -1053,6 +1091,7 @@ git diff --check
 - 登录表单和验证码刷新组件测试；
 - 用户、角色、权限关键交互测试；
 - Provider、Model、Prompt API 契约测试；
+- Agent 聚合配置、生命周期、发布/回滚和调用 API 契约测试；
 - BFF 登录/登出和 Cookie 行为测试；
 - 至少一条登录到后台的浏览器级 smoke test。
 
@@ -1090,12 +1129,12 @@ pnpm build
 6. 缺少 CORS。采用 Next.js BFF 时浏览器不直连 FastAPI，可以暂不开放；若未来直连则必须配置精确 Origin，不能使用宽泛生产配置。
 7. Redis Docker 镜像使用 `latest`，可复现部署前应固定版本。
 8. 没有统一 lint/format/type-check 配置和 CI。
-9. Alembic 的 Model 导入依赖间接导入，新增模块时容易漏表。
+9. Alembic 需要在 `env.py` 显式导入每个 Model 模块，新增模块时容易漏表。
 10. Knowledge Base 文档上传仍使用路径占位，尚未真正写入 MinIO。
 
 ### P2：长期演进
 
-- Agent、Task 等领域模型和 API；
+- Task 等领域模型和 API；
 - Tool 的内置工具与自定义函数安全执行器；
 - Knowledge Base 的真实文件存储、解析、分段和向量化；
 - 审计日志；

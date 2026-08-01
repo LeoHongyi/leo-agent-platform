@@ -46,4 +46,17 @@ export const queryKeys = {
     detail: (toolId: number) =>
       ["tools", "detail", toolId] as const,
   },
+  knowledgeBases: {
+    all: ["knowledge-bases"] as const,
+    list: (params: ListParams) =>
+      ["knowledge-bases", "list", params] as const,
+  },
+  agents: {
+    all: ["agents"] as const,
+    list: (params: ListParams) => ["agents", "list", params] as const,
+    detail: (agentId: number) =>
+      ["agents", "detail", agentId] as const,
+    versions: (agentId: number) =>
+      ["agents", agentId, "versions"] as const,
+  },
 } as const
