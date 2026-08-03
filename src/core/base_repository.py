@@ -14,6 +14,14 @@ class BaseRepository(Generic[T]):
     async def get_by_id(self, id: int) -> T | None:
         return await self.db.get(self.model, id)
 
+    async def get_by_ids(self, ids: list[int]) -> list[T]:
+        """按 ID 批量获取实体。"""
+        if not ids:
+            return []
+        stmt = select(self.model).where(self.model.id.in_(ids))
+        result = await self.db.execute(stmt)
+        return list(result.scalars().all())
+
     async def get_all(self, offset: int = 0, limit: int = 100) -> Sequence[T]:
         stmt = select(self.model).offset(offset).limit(limit)
         result = await self.db.execute(stmt)

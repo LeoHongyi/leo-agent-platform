@@ -16,6 +16,7 @@ from src.modules.model.api import router as model_router
 from src.modules.prompt.api import router as prompt_router
 from src.modules.KnowledgeBase.api import router as knowledge_router
 from src.modules.tool.api import router as tool_router
+from src.modules.agent.api import router as agent_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -57,6 +58,8 @@ def create_app() -> FastAPI:
     app.include_router(knowledge_router, prefix="/api/v1")
 
     app.include_router(tool_router, prefix="/api/v1")
+
+    app.include_router(agent_router, prefix="/api/v1")
     return app
 
 app = create_app()

@@ -1,6 +1,6 @@
 # Implementation Summary
 
-Last verified: 2026-07-29
+Last verified: 2026-07-31
 
 This document summarizes the implementation currently prepared in the working branch. It is intended as a concise handoff companion to the repository README, project specification, and OpenAPI snapshot.
 
@@ -68,13 +68,28 @@ This document summarizes the implementation currently prepared in the working br
 - Alembic migration support
 - Frontend pages and real MinIO upload processing are not implemented yet
 
+### Agent Runtime
+
+- Authenticated Agent CRUD and paginated search endpoints
+- Strict typed configuration for model, prompt, RAG, tools, and advanced options
+- Aggregate validation for model/provider availability, published prompts, ready knowledge bases, and enabled tools
+- Explicit `draft`, `inactive`, `active`, and `error` lifecycle rules
+- First publish as `v1.0`, monotonic minor versions, immutable full snapshots, history, and rollback
+- Relational Agent-to-knowledge-base and Agent-to-tool associations with foreign-key protection
+- OpenAI-compatible and Anthropic runtime requests with encrypted Provider API-key decryption
+- Prompt variable validation, knowledge-context assembly, and function-definition forwarding
+- Invocation logs and rolling seven-day call-count and success-rate metrics
+- Runtime failures transition active Agents to `error` without exposing upstream response bodies or credentials
+- Backend schema, route, service, runtime, migration, and full lifecycle integration coverage
+- Frontend aggregate form, lifecycle controls, publishing, history, rollback, deletion, and live invocation result display
+
 ### Administration Console
 
 - Next.js 16 App Router with React 19 and strict TypeScript
 - Same-origin BFF with explicit method/path allowlisting
 - JWT stored in an HttpOnly cookie
 - Protected dashboard routes
-- User, role, permission, provider, model, prompt, and tool management
+- User, role, permission, provider, model, prompt, tool, and Agent management
 - TanStack Query remote-state caching and invalidation
 - Zustand client-only UI state
 - React Hook Form and Zod validation
@@ -91,6 +106,7 @@ The checked-in contract is stored in [`docs/openai.json`](openai.json). The main
 | Models | `/api/v1/models`, `/api/v1/models/{model_id}` |
 | Prompts | `/api/v1/prompts`, `/api/v1/prompts/{prompt_id}`, publish, versions, and rollback subpaths |
 | Tools | `/api/v1/tools`, `/api/v1/tools/{tool_id}`, enable, disable, and test subpaths |
+| Agents | `/api/v1/agents`, `/api/v1/agents/{agent_id}`, start, stop, publish, versions, rollback, and invoke subpaths |
 
 ## Verification Baseline
 
@@ -104,6 +120,12 @@ The implementation has been checked with:
 - Next.js production build
 - Real HTTP lifecycle checks for provider, model, and prompt management
 - Prompt lifecycle check: create → publish `v1.0` → edit → publish `v1.1` → rollback `v1.0` → delete
+- Alembic head and ORM drift validation with `alembic check`
+- Agent aggregate lifecycle check with temporary Provider, Model, Prompt, Knowledge Base, and Tool resources
+- Agent lifecycle check: draft → publish `v1.0` → start → invoke → stop → edit → publish `v1.1` → rollback `v1.0` → delete
+- Real local provider invocation with verified rolling metrics and automatic test-data cleanup
+- Real Next.js BFF full-lifecycle check covering Agent create, publish, start, invoke, stop, edit, republish, version history, rollback, and delete
+- Agent frontend API contract tests and a successful Next.js production build containing `/agents`
 - Git whitespace validation
 
 The exact test count may grow as the codebase evolves; command success is the maintained acceptance criterion.
@@ -112,15 +134,17 @@ The exact test count may grow as the codebase evolves; command success is the ma
 
 - Knowledge-base APIs are preliminary and do not yet have a frontend.
 - The document upload route records metadata and a placeholder path; real MinIO upload processing is not integrated yet.
-- Agent execution and task orchestration remain future modules.
+- Agent RAG uses the current relational knowledge-base segments; ingestion, embeddings, and true vector/hybrid retrieval remain future work.
+- Agent function definitions are forwarded to model providers, but a server-side multi-step tool-execution loop is not implemented yet.
+- Task orchestration remains a future module.
 - Tool management currently supports real HTTP API tests; built-in and custom-function runtime executors remain future work.
 - Some backend business errors still use HTTP 200 with a non-200 business `code`; the Next.js BFF normalizes these for browser clients.
 - The OpenAPI snapshot must be refreshed whenever backend routes or schemas change.
 
 ## Recommended Next Steps
 
-1. Mount and test the knowledge-base API after its service rules are finalized.
-2. Add knowledge-base administration pages and document upload flows.
-3. Standardize backend HTTP status codes and error envelopes.
-4. Add CI for backend tests, frontend checks, and production builds.
-5. Add integration coverage for provider-specific model discovery and agent runtime configuration.
+1. Complete knowledge-base ingestion, vector retrieval, and administration pages.
+2. Add a guarded multi-step tool-execution loop for Agent invocations.
+3. Add conversation history persistence and streaming Agent responses.
+4. Standardize backend HTTP status codes and error envelopes.
+5. Add CI for backend tests, frontend checks, and production builds.

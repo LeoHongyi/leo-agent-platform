@@ -14,6 +14,8 @@ See the repository [README](../README.md) for full-stack setup, the [Project Spe
 - Provider CRUD, encrypted API-key input, status display, and connection testing
 - Model CRUD, provider filtering, capabilities, pricing, and status management
 - Prompt CRUD, variable definitions, publishing, version history, and rollback
+- Tool CRUD, Function Calling configuration, state transitions, and live tests
+- Agent aggregate configuration, publish/version/rollback workflows, lifecycle control, and live invocation
 - Dashboard statistics and current-user role and permission summaries
 - Zod validation for external responses and form payloads
 - TanStack Query caching, invalidation, and server hydration
@@ -82,12 +84,15 @@ src/
 │   └── ui/                     # shadcn/ui components
 ├── features/
 │   ├── auth/
+│   ├── agents/
 │   ├── dashboard/
+│   ├── knowledge-bases/
 │   ├── models/
 │   ├── permissions/
 │   ├── prompts/
 │   ├── providers/
 │   ├── roles/
+│   ├── tools/
 │   └── users/
 ├── lib/
 │   ├── api/                    # API clients, endpoint constants, and Zod schemas

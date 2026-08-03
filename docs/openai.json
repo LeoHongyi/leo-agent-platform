@@ -1912,7 +1912,7 @@
               "schema": {
                 "anyOf": [
                   {
-                    "$ref": "#/components/schemas/PublishRequest"
+                    "$ref": "#/components/schemas/src__modules__prompt__schema__PublishRequest"
                   },
                   {
                     "type": "null"
@@ -2022,7 +2022,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/RollbackRequest"
+                "$ref": "#/components/schemas/src__modules__prompt__schema__RollbackRequest"
               }
             }
           }
@@ -3165,6 +3165,599 @@
         }
       }
     },
+    "/api/v1/agents": {
+      "post": {
+        "tags": [
+          "Agent管理"
+        ],
+        "summary": "创建Agent",
+        "operationId": "create_agent_api_v1_agents_post",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AgentCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchema_AgentRead_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Agent管理"
+        ],
+        "summary": "Agent列表",
+        "operationId": "list_agents_api_v1_agents_get",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "页码，从1开始",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "页码，从1开始"
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "description": "每页条数",
+              "default": 10,
+              "title": "Page Size"
+            },
+            "description": "每页条数"
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "搜索关键词",
+              "title": "Keyword"
+            },
+            "description": "搜索关键词"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchema_PageResult_AgentRead__"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/agents/{agent_id}": {
+      "get": {
+        "tags": [
+          "Agent管理"
+        ],
+        "summary": "Agent详情",
+        "operationId": "get_agent_api_v1_agents__agent_id__get",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "agent_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Agent Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchema_AgentRead_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Agent管理"
+        ],
+        "summary": "更新Agent",
+        "operationId": "update_agent_api_v1_agents__agent_id__put",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "agent_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Agent Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AgentUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchema_AgentRead_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Agent管理"
+        ],
+        "summary": "删除Agent",
+        "operationId": "delete_agent_api_v1_agents__agent_id__delete",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "agent_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Agent Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchema_NoneType_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/agents/{agent_id}/start": {
+      "post": {
+        "tags": [
+          "Agent管理"
+        ],
+        "summary": "启动Agent",
+        "operationId": "start_agent_api_v1_agents__agent_id__start_post",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "agent_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Agent Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchema_AgentRead_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/agents/{agent_id}/stop": {
+      "post": {
+        "tags": [
+          "Agent管理"
+        ],
+        "summary": "停止Agent",
+        "operationId": "stop_agent_api_v1_agents__agent_id__stop_post",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "agent_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Agent Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchema_AgentRead_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/agents/{agent_id}/publish": {
+      "post": {
+        "tags": [
+          "Agent管理"
+        ],
+        "summary": "发布Agent版本",
+        "operationId": "publish_agent_api_v1_agents__agent_id__publish_post",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "agent_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Agent Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/src__modules__agent__schema__PublishRequest"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Data"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchema_AgentRead_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/agents/{agent_id}/versions": {
+      "get": {
+        "tags": [
+          "Agent管理"
+        ],
+        "summary": "Agent版本列表",
+        "operationId": "get_versions_api_v1_agents__agent_id__versions_get",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "agent_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Agent Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchema_list_AgentVersionRead__"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/agents/{agent_id}/rollback": {
+      "post": {
+        "tags": [
+          "Agent管理"
+        ],
+        "summary": "回滚Agent版本",
+        "operationId": "rollback_agent_api_v1_agents__agent_id__rollback_post",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "agent_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Agent Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/src__modules__agent__schema__RollbackRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchema_AgentRead_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/agents/{agent_id}/invoke": {
+      "post": {
+        "tags": [
+          "Agent管理"
+        ],
+        "summary": "调用运行中的Agent",
+        "operationId": "invoke_agent_api_v1_agents__agent_id__invoke_post",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "agent_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Agent Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AgentInvokeRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchema_AgentInvokeResponse_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/health": {
       "get": {
         "summary": "Root",
@@ -3209,6 +3802,722 @@
           "roles"
         ],
         "title": "AccessCodesResponse"
+      },
+      "AgentAdvancedConfig": {
+        "properties": {
+          "welcomeMessage": {
+            "type": "string",
+            "maxLength": 2000,
+            "title": "Welcomemessage",
+            "description": "欢迎语",
+            "default": ""
+          },
+          "suggestedQuestions": {
+            "items": {
+              "type": "string",
+              "maxLength": 200,
+              "minLength": 1
+            },
+            "type": "array",
+            "maxItems": 20,
+            "title": "Suggestedquestions",
+            "description": "推荐问题"
+          },
+          "maxTurns": {
+            "type": "integer",
+            "maximum": 1000.0,
+            "minimum": 1.0,
+            "title": "Maxturns",
+            "description": "最大对话轮数",
+            "default": 20
+          },
+          "timeout": {
+            "type": "number",
+            "maximum": 300.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Timeout",
+            "description": "调用超时秒数",
+            "default": 30
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "AgentAdvancedConfig"
+      },
+      "AgentConfigSchema": {
+        "properties": {
+          "model": {
+            "$ref": "#/components/schemas/AgentModelConfig"
+          },
+          "prompt": {
+            "$ref": "#/components/schemas/AgentPromptConfig"
+          },
+          "rag": {
+            "$ref": "#/components/schemas/AgentRagConfig"
+          },
+          "tools": {
+            "$ref": "#/components/schemas/AgentToolsConfig"
+          },
+          "advanced": {
+            "$ref": "#/components/schemas/AgentAdvancedConfig"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "AgentConfigSchema",
+        "description": "Agent 配置"
+      },
+      "AgentCreate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name",
+            "description": "Agent 名称"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 5000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description",
+            "description": "Agent 描述"
+          },
+          "type": {
+            "$ref": "#/components/schemas/AgentType",
+            "description": "Agent 类型"
+          },
+          "model_id": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Id",
+            "description": "关联模型数据库 ID；草稿阶段可为空"
+          },
+          "config": {
+            "$ref": "#/components/schemas/AgentConfigSchema"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name",
+          "type"
+        ],
+        "title": "AgentCreate"
+      },
+      "AgentInvokeRequest": {
+        "properties": {
+          "input": {
+            "type": "string",
+            "maxLength": 100000,
+            "minLength": 1,
+            "title": "Input",
+            "description": "本轮用户输入"
+          },
+          "history": {
+            "items": {
+              "$ref": "#/components/schemas/AgentMessage"
+            },
+            "type": "array",
+            "maxItems": 200,
+            "title": "History",
+            "description": "历史对话"
+          },
+          "variables": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "boolean"
+                }
+              ]
+            },
+            "type": "object",
+            "title": "Variables",
+            "description": "Prompt 模板变量"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "input"
+        ],
+        "title": "AgentInvokeRequest"
+      },
+      "AgentInvokeResponse": {
+        "properties": {
+          "content": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Content"
+          },
+          "tool_calls": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Tool Calls"
+          },
+          "usage": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Usage"
+          },
+          "model_id": {
+            "type": "string",
+            "title": "Model Id"
+          },
+          "latency_ms": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Latency Ms"
+          }
+        },
+        "type": "object",
+        "required": [
+          "content",
+          "model_id",
+          "latency_ms"
+        ],
+        "title": "AgentInvokeResponse"
+      },
+      "AgentMessage": {
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": [
+              "user",
+              "assistant"
+            ],
+            "title": "Role",
+            "description": "消息角色"
+          },
+          "content": {
+            "type": "string",
+            "maxLength": 100000,
+            "minLength": 1,
+            "title": "Content",
+            "description": "消息内容"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "role",
+          "content"
+        ],
+        "title": "AgentMessage"
+      },
+      "AgentModelConfig": {
+        "properties": {
+          "modelId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Modelid",
+            "description": "供应商侧模型标识；必须与顶层 model_id 指向的模型一致"
+          },
+          "temperature": {
+            "type": "number",
+            "maximum": 2.0,
+            "minimum": 0.0,
+            "title": "Temperature",
+            "description": "采样温度",
+            "default": 0.7
+          },
+          "maxTokens": {
+            "type": "integer",
+            "maximum": 1000000.0,
+            "minimum": 1.0,
+            "title": "Maxtokens",
+            "description": "单次响应最大 Token 数",
+            "default": 2048
+          },
+          "topP": {
+            "type": "number",
+            "maximum": 1.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Topp",
+            "description": "核采样概率",
+            "default": 1
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "AgentModelConfig"
+      },
+      "AgentPromptConfig": {
+        "properties": {
+          "systemPrompt": {
+            "type": "string",
+            "maxLength": 100000,
+            "title": "Systemprompt",
+            "description": "附加系统提示词",
+            "default": ""
+          },
+          "promptTemplateId": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prompttemplateid",
+            "description": "关联的已发布 Prompt ID"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "AgentPromptConfig"
+      },
+      "AgentRagConfig": {
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled",
+            "description": "是否启用知识库检索",
+            "default": false
+          },
+          "knowledgeBaseIds": {
+            "items": {
+              "type": "integer",
+              "exclusiveMinimum": 0.0
+            },
+            "type": "array",
+            "maxItems": 50,
+            "title": "Knowledgebaseids",
+            "description": "关联知识库 ID"
+          },
+          "retrievalStrategy": {
+            "$ref": "#/components/schemas/RetrievalStrategy",
+            "description": "检索策略",
+            "default": "hybrid"
+          },
+          "topK": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Topk",
+            "description": "召回分段数量",
+            "default": 5
+          },
+          "similarityThreshold": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Similaritythreshold",
+            "description": "相似度阈值",
+            "default": 0.7
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "AgentRagConfig"
+      },
+      "AgentRead": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "type": {
+            "$ref": "#/components/schemas/AgentType"
+          },
+          "status": {
+            "$ref": "#/components/schemas/AgentStatus"
+          },
+          "model_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Id"
+          },
+          "prompt_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prompt Id"
+          },
+          "config": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AgentConfigSchema"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "success_rate": {
+            "type": "number",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Success Rate"
+          },
+          "call_count_7d": {
+            "type": "integer",
+            "title": "Call Count 7D"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version"
+          },
+          "current_version_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Version Id"
+          },
+          "created_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "description",
+          "type",
+          "status",
+          "model_id",
+          "prompt_id",
+          "config",
+          "success_rate",
+          "call_count_7d",
+          "version",
+          "current_version_id",
+          "created_by",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "AgentRead"
+      },
+      "AgentStatus": {
+        "type": "string",
+        "enum": [
+          "draft",
+          "inactive",
+          "active",
+          "error"
+        ],
+        "title": "AgentStatus"
+      },
+      "AgentToolsConfig": {
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled",
+            "description": "是否启用工具调用",
+            "default": false
+          },
+          "toolIds": {
+            "items": {
+              "type": "integer",
+              "exclusiveMinimum": 0.0
+            },
+            "type": "array",
+            "maxItems": 100,
+            "title": "Toolids",
+            "description": "关联工具 ID"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "AgentToolsConfig"
+      },
+      "AgentType": {
+        "type": "string",
+        "enum": [
+          "conversation",
+          "tool",
+          "analysis",
+          "creative",
+          "workflow"
+        ],
+        "title": "AgentType"
+      },
+      "AgentUpdate": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name",
+            "description": "Agent 名称"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 5000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description",
+            "description": "Agent 描述；传 null 可清除"
+          },
+          "type": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AgentType"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Agent 类型"
+          },
+          "model_id": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Id",
+            "description": "关联模型 ID；传 null 可清除"
+          },
+          "config": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AgentConfigSchema"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "完整运行配置；传 null 可清空"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "AgentUpdate"
+      },
+      "AgentVersionRead": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "agent_id": {
+            "type": "integer",
+            "title": "Agent Id"
+          },
+          "version": {
+            "type": "string",
+            "title": "Version"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "type": {
+            "$ref": "#/components/schemas/AgentType"
+          },
+          "model_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Id"
+          },
+          "prompt_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prompt Id"
+          },
+          "config": {
+            "$ref": "#/components/schemas/AgentConfigSchema"
+          },
+          "changelog": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Changelog"
+          },
+          "is_current": {
+            "type": "boolean",
+            "title": "Is Current"
+          },
+          "published_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Published By"
+          },
+          "published_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Published At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "agent_id",
+          "version",
+          "name",
+          "description",
+          "type",
+          "model_id",
+          "prompt_id",
+          "config",
+          "changelog",
+          "is_current",
+          "published_by",
+          "published_at"
+        ],
+        "title": "AgentVersionRead"
       },
       "Body_upload_document_api_v1_knowledge_bases__kb_id__documents_post": {
         "properties": {
@@ -3899,6 +5208,34 @@
         "type": "object",
         "title": "ModelUpdate",
         "description": "更新模型请求。"
+      },
+      "PageResult_AgentRead_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/AgentRead"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total",
+            "default": 0
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page",
+            "default": 1
+          },
+          "page_size": {
+            "type": "integer",
+            "title": "Page Size",
+            "default": 20
+          }
+        },
+        "type": "object",
+        "title": "PageResult[AgentRead]"
       },
       "PageResult_DocumentRead_": {
         "properties": {
@@ -4900,20 +6237,6 @@
         "title": "ProviderUpdate",
         "description": "更新供应商请求 — 所有字段可选"
       },
-      "PublishRequest": {
-        "properties": {
-          "changelog": {
-            "type": "string",
-            "maxLength": 500,
-            "title": "Changelog",
-            "description": "变更说明",
-            "default": ""
-          }
-        },
-        "type": "object",
-        "title": "PublishRequest",
-        "description": "发布请求"
-      },
       "ResponseSchema": {
         "properties": {
           "code": {
@@ -4964,6 +6287,58 @@
         },
         "type": "object",
         "title": "ResponseSchema[AccessCodesResponse]"
+      },
+      "ResponseSchema_AgentInvokeResponse_": {
+        "properties": {
+          "code": {
+            "type": "integer",
+            "title": "Code",
+            "default": 200
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "success"
+          },
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AgentInvokeResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "title": "ResponseSchema[AgentInvokeResponse]"
+      },
+      "ResponseSchema_AgentRead_": {
+        "properties": {
+          "code": {
+            "type": "integer",
+            "title": "Code",
+            "default": 200
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "success"
+          },
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AgentRead"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "title": "ResponseSchema[AgentRead]"
       },
       "ResponseSchema_CaptchaRead_": {
         "properties": {
@@ -5088,6 +6463,32 @@
         },
         "type": "object",
         "title": "ResponseSchema[NoneType]"
+      },
+      "ResponseSchema_PageResult_AgentRead__": {
+        "properties": {
+          "code": {
+            "type": "integer",
+            "title": "Code",
+            "default": 200
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "success"
+          },
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PageResult_AgentRead_"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "title": "ResponseSchema[PageResult[AgentRead]]"
       },
       "ResponseSchema_PageResult_DocumentRead__": {
         "properties": {
@@ -5635,6 +7036,36 @@
         "type": "object",
         "title": "ResponseSchema[UserWithRolesRead]"
       },
+      "ResponseSchema_list_AgentVersionRead__": {
+        "properties": {
+          "code": {
+            "type": "integer",
+            "title": "Code",
+            "default": 200
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "success"
+          },
+          "data": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/AgentVersionRead"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data"
+          }
+        },
+        "type": "object",
+        "title": "ResponseSchema[list[AgentVersionRead]]"
+      },
       "ResponseSchema_list_PromptVersionRead__": {
         "properties": {
           "code": {
@@ -5694,6 +7125,15 @@
         },
         "type": "object",
         "title": "ResponseSchema[list[UserWithRolesRead]]"
+      },
+      "RetrievalStrategy": {
+        "type": "string",
+        "enum": [
+          "keyword",
+          "semantic",
+          "hybrid"
+        ],
+        "title": "RetrievalStrategy"
       },
       "RoleAssignPermissions": {
         "properties": {
@@ -5810,22 +7250,6 @@
         },
         "type": "object",
         "title": "RoleUpdate"
-      },
-      "RollbackRequest": {
-        "properties": {
-          "version_id": {
-            "type": "integer",
-            "minimum": 1.0,
-            "title": "Version Id",
-            "description": "要回滚到的版本 ID"
-          }
-        },
-        "type": "object",
-        "required": [
-          "version_id"
-        ],
-        "title": "RollbackRequest",
-        "description": "回滚请求"
       },
       "SegmentRead": {
         "properties": {
@@ -6393,6 +7817,66 @@
           "type"
         ],
         "title": "ValidationError"
+      },
+      "src__modules__agent__schema__PublishRequest": {
+        "properties": {
+          "changelog": {
+            "type": "string",
+            "maxLength": 500,
+            "title": "Changelog",
+            "description": "版本说明",
+            "default": ""
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "PublishRequest"
+      },
+      "src__modules__agent__schema__RollbackRequest": {
+        "properties": {
+          "version_id": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "Version Id",
+            "description": "目标版本 ID"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "version_id"
+        ],
+        "title": "RollbackRequest"
+      },
+      "src__modules__prompt__schema__PublishRequest": {
+        "properties": {
+          "changelog": {
+            "type": "string",
+            "maxLength": 500,
+            "title": "Changelog",
+            "description": "变更说明",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "PublishRequest",
+        "description": "发布请求"
+      },
+      "src__modules__prompt__schema__RollbackRequest": {
+        "properties": {
+          "version_id": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Version Id",
+            "description": "要回滚到的版本 ID"
+          }
+        },
+        "type": "object",
+        "required": [
+          "version_id"
+        ],
+        "title": "RollbackRequest",
+        "description": "回滚请求"
       }
     },
     "securitySchemes": {

@@ -13,14 +13,14 @@ from src.core.config import get_settings
 # 导入 Base 和所有 Model（确保 Alembic 能发现表结构）
 # from src.modules.user.model import User  # noqa: F401  每新增模块在此导入
 from src.core.base_model import Base
-import src.modules.user.model  # noqa: F401  每新增模块在此导入
-import src.modules.role.model  # noqa: F401
-import src.modules.provider.model  # noqa: F401
-import src.modules.model.model #noqa: F401 unused-import
+import src.modules.agent.model  # noqa: F401
+import src.modules.KnowledgeBase.model  # noqa: F401
+import src.modules.model.model  # noqa: F401
 import src.modules.prompt.model  # noqa: F401
-import src.modules.KnowledgeBase.model # noqa: F401
+import src.modules.provider.model  # noqa: F401
+import src.modules.role.model  # noqa: F401
 import src.modules.tool.model  # noqa: F401
-
+import src.modules.user.model  # noqa: F401  每新增模块在此导入
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

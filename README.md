@@ -2,7 +2,7 @@
 
 Leo Agent Platform is a full-stack foundation for building and operating AI agent products. The backend uses FastAPI with asynchronous SQLAlchemy, MySQL, Redis, JWT authentication, and modular business services. The administration console uses Next.js App Router and a same-origin BFF so access tokens remain in secure, HttpOnly cookies.
 
-The repository currently provides authentication and RBAC, model provider and model management, versioned prompt management, authenticated tool management, and the initial knowledge-base data model.
+The repository currently provides authentication and RBAC, model provider and model management, versioned prompt management, authenticated tool management, an initial knowledge-base data model, and an authenticated Agent runtime with versioned aggregate configuration.
 
 ## Current Implementation
 
@@ -19,6 +19,9 @@ The repository currently provides authentication and RBAC, model provider and mo
 - Model CRUD with provider filtering and foreign-key validation
 - Prompt CRUD with draft, publish, version history, and rollback workflows
 - Tool CRUD, state transitions, and real HTTP API connection testing
+- Agent CRUD with typed model, prompt, RAG, tool, and advanced configuration
+- Agent draft/publish/start/stop/error lifecycle with immutable version snapshots
+- Agent rollback, aggregate reference validation, real provider invocation, and seven-day runtime metrics
 - Request logging, application lifecycle handling, and business exception mapping
 - Automated backend tests with pytest and pytest-asyncio
 
@@ -27,10 +30,11 @@ The repository currently provides authentication and RBAC, model provider and mo
 - Next.js 16 App Router, React 19, and strict TypeScript
 - Login with image CAPTCHA and an HttpOnly cookie session
 - Protected dashboard and same-origin BFF route allowlist
-- User, role, permission, provider, model, prompt, and tool management pages
+- User, role, permission, provider, model, prompt, tool, and Agent management pages
 - Provider connection tests and masked API-key handling
 - Prompt publishing, version history, and rollback interactions
 - Tool registration, JSON configuration, state transitions, and live execution tests
+- Agent aggregate configuration, version history, rollback, lifecycle control, and live invocation
 - TanStack Query for remote state and cache invalidation
 - Zustand for client-only UI state
 - React Hook Form and Zod for form and API-boundary validation
@@ -106,6 +110,7 @@ flowchart LR
 │   ├── middlewares/
 │   ├── modules/
 │   │   ├── auth/
+│   │   ├── agent/
 │   │   ├── captcha/
 │   │   ├── KnowledgeBase/
 │   │   ├── model/
@@ -138,6 +143,7 @@ flowchart LR
 | Prompt | Authenticated CRUD, draft state, semantic versions, immutable snapshots, rollback |
 | Tool | Authenticated CRUD, enabled/disabled/error lifecycle, HTTP execution tests |
 | KnowledgeBase | Initial CRUD, document metadata, segment management, schemas, repositories, and migration foundation |
+| Agent | Authenticated CRUD, aggregate validation, publishing, version history, rollback, lifecycle control, provider invocation, and runtime metrics |
 
 ## Prompt Lifecycle
 
@@ -152,6 +158,21 @@ Create draft
 ```
 
 Published versions retain independent snapshots of prompt content, variables, metadata, author, changelog, and publication time.
+
+## Agent Lifecycle
+
+Agents are created as unpublished drafts. Publishing validates every referenced model, provider, prompt, knowledge base, and tool before creating an immutable full-configuration snapshot.
+
+```text
+Create -> draft
+draft/inactive -> publish -> inactive
+inactive/error -> start -> active
+active/error -> stop -> inactive
+active -> runtime failure -> error
+draft/inactive -> rollback -> inactive at the selected snapshot
+```
+
+The first publication is `v1.0`; later publications increment the minor version without deleting history. An Agent can only accept `/invoke` requests while active. The runtime currently supports OpenAI-compatible and Anthropic message APIs, forwards enabled function definitions to the model, records invocation results, and exposes rolling seven-day call and success metrics.
 
 ## Local Development
 
@@ -319,7 +340,7 @@ Do not define an empty `DB_PASSWORD=` in PyCharm. Process environment variables 
 
 ## API Overview
 
-Provider, model, prompt, and knowledge-base endpoints require a Bearer token. The Next.js console adds it through the BFF. Some legacy user, role, and permission routes still require endpoint-level authorization hardening.
+Provider, model, prompt, tool, knowledge-base, and Agent endpoints require a Bearer token. The Next.js console adds it through the BFF. Some legacy user, role, and permission routes still require endpoint-level authorization hardening.
 
 | Resource | Base path | Main operations |
 | --- | --- | --- |
@@ -330,6 +351,9 @@ Provider, model, prompt, and knowledge-base endpoints require a Bearer token. Th
 | Providers | `/api/v1/providers` | CRUD and connection test |
 | Models | `/api/v1/models` | CRUD and provider filtering |
 | Prompts | `/api/v1/prompts` | CRUD, publish, versions, rollback |
+| Tools | `/api/v1/tools` | CRUD, enable, disable, and connection test |
+| Knowledge bases | `/api/v1/knowledge-bases` | CRUD, document metadata, and segments |
+| Agents | `/api/v1/agents` | CRUD, publish, versions, rollback, start, stop, and invoke |
 
 The fixed `/users/me` route must remain registered before `/users/{user_id}` so FastAPI does not attempt to parse `me` as an integer.
 
@@ -339,6 +363,7 @@ Run backend checks from the repository root:
 
 ```bash
 python -m compileall -q src alembic test
+alembic check
 python -m pytest -q
 ```
 

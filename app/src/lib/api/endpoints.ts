@@ -40,4 +40,20 @@ export const endpoints = {
     `/api/backend/api/v1/tools/${toolId}/disable`,
   toolTest: (toolId: number) =>
     `/api/backend/api/v1/tools/${toolId}/test`,
+  knowledgeBases: "/api/backend/api/v1/knowledge-bases",
+  agents: "/api/backend/api/v1/agents",
+  agent: (agentId: number) =>
+    `/api/backend/api/v1/agents/${agentId}`,
+  agentStart: (agentId: number) =>
+    `/api/backend/api/v1/agents/${agentId}/start`,
+  agentStop: (agentId: number) =>
+    `/api/backend/api/v1/agents/${agentId}/stop`,
+  agentPublish: (agentId: number) =>
+    `/api/backend/api/v1/agents/${agentId}/publish`,
+  agentVersions: (agentId: number) =>
+    `/api/backend/api/v1/agents/${agentId}/versions`,
+  agentRollback: (agentId: number) =>
+    `/api/backend/api/v1/agents/${agentId}/rollback`,
+  agentInvoke: (agentId: number) =>
+    `/api/backend/api/v1/agents/${agentId}/invoke`,
 } as const

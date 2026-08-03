@@ -57,6 +57,7 @@ const navigation = [
   { href: "/models", label: "模型管理", icon: Cpu },
   { href: "/prompts", label: "Prompt 管理", icon: ScrollText },
   { href: "/tools", label: "工具管理", icon: Wrench },
+  { href: "/agents", label: "Agent 管理", icon: Bot },
 ]
 
 export function DashboardShell({
