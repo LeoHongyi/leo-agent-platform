@@ -2,7 +2,7 @@
 
 Leo Agent Platform is a full-stack foundation for building and operating AI agent products. The backend uses FastAPI with asynchronous SQLAlchemy, MySQL, Redis, JWT authentication, and modular business services. The administration console uses Next.js App Router and a same-origin BFF so access tokens remain in secure, HttpOnly cookies.
 
-The repository currently provides authentication and RBAC, model provider and model management, versioned prompt management, authenticated tool management, an initial knowledge-base data model, and an authenticated Agent runtime with versioned aggregate configuration.
+The repository currently provides authentication and RBAC, model provider and model management, versioned prompt management, authenticated tool management, MinIO-backed knowledge-base ingestion and retrieval, and an authenticated Agent runtime with versioned aggregate configuration.
 
 ## Current Implementation
 
@@ -19,6 +19,8 @@ The repository currently provides authentication and RBAC, model provider and mo
 - Model CRUD with provider filtering and foreign-key validation
 - Prompt CRUD with draft, publish, version history, and rollback workflows
 - Tool CRUD, state transitions, and real HTTP API connection testing
+- Knowledge-base CRUD, MinIO document upload/download, durable delete cleanup, background parsing, configurable chunking, segment administration, retry, and lexical retrieval testing
+- TXT, Markdown, CSV, HTML, DOCX, and text-based PDF ingestion with document and knowledge-base status tracking
 - Agent CRUD with typed model, prompt, RAG, tool, and advanced configuration
 - Agent draft/publish/start/stop/error lifecycle with immutable version snapshots
 - Agent rollback, aggregate reference validation, real provider invocation, and seven-day runtime metrics
@@ -53,7 +55,8 @@ For the detailed delivery snapshot, see [Implementation Summary](docs/IMPLEMENTA
 | Migrations | Alembic |
 | Cache | Redis |
 | Security | PyJWT, bcrypt, Fernet, image CAPTCHA |
-| Object storage | MinIO infrastructure |
+| Object storage | MinIO |
+| Document parsing | pypdf, python-docx, and standard-library text parsers |
 | Backend tests | pytest, pytest-asyncio, HTTPX |
 | Frontend | Next.js 16, React 19, TypeScript |
 | UI | shadcn/ui, Tailwind CSS 4 |
@@ -74,6 +77,7 @@ flowchart LR
     Service --> Repository[Repository Layer]
     Repository --> MySQL[(MySQL)]
     Service --> Redis[(Redis)]
+    Service --> MinIO[(MinIO)]
     API --> Schema[Pydantic Schemas]
     Repository --> Model[SQLAlchemy Models]
 ```
@@ -88,7 +92,7 @@ flowchart LR
 | Repository | `src/modules/*/repository.py` | SQLAlchemy queries and persistence |
 | Model | `src/modules/*/model.py` | Database tables and ORM relationships |
 | Core | `src/core/` | Configuration, dependencies, base classes, responses, and exceptions |
-| Infrastructure | `src/infra/` | Database and Redis connections |
+| Infrastructure | `src/infra/` | Database, Redis, and MinIO clients |
 | BFF | `app/src/app/api/` | Session handling and allowlisted backend forwarding |
 
 ## Repository Layout
@@ -142,7 +146,7 @@ flowchart LR
 | Model | Authenticated CRUD, provider relationship, provider filter, capabilities and pricing |
 | Prompt | Authenticated CRUD, draft state, semantic versions, immutable snapshots, rollback |
 | Tool | Authenticated CRUD, enabled/disabled/error lifecycle, HTTP execution tests |
-| KnowledgeBase | Initial CRUD, document metadata, segment management, schemas, repositories, and migration foundation |
+| KnowledgeBase | Authenticated CRUD, MinIO upload/download, background parsing and chunking, document retry, segment management, and lexical retrieval tests |
 | Agent | Authenticated CRUD, aggregate validation, publishing, version history, rollback, lifecycle control, provider invocation, and runtime metrics |
 
 ## Prompt Lifecycle
@@ -182,7 +186,7 @@ Run backend commands from the repository root so Pydantic Settings can load the 
 cd /Users/leo/leo-agent-app/leo-agent-platform
 ```
 
-Starting Uvicorn from another working directory can prevent the application from loading database credentials and may result in a MySQL `using password: NO` error.
+The application resolves the root `.env` from the source tree, so PyCharm and Uvicorn use the same configuration regardless of their working directory. Explicit process environment variables still take precedence; do not define an empty `DB_PASSWORD` override.
 
 ### 1. Prepare Python
 
@@ -217,6 +221,8 @@ Keep these values synchronized:
 | `DB_PASSWORD` | `MYSQL_ROOT_PASSWORD` | MySQL root password |
 | `DB_NAME` | `MYSQL_DATABASE` | Database name |
 | `REDIS_PASSWORD` | `REDIS_PASSWORD` | Redis password |
+| `MINIO_ACCESS_KEY` | `MINIO_ROOT_USER` | MinIO access key |
+| `MINIO_SECRET_KEY` | `MINIO_ROOT_PASSWORD` | MinIO secret key |
 
 For a backend process running on the host:
 
@@ -352,7 +358,7 @@ Provider, model, prompt, tool, knowledge-base, and Agent endpoints require a Bea
 | Models | `/api/v1/models` | CRUD and provider filtering |
 | Prompts | `/api/v1/prompts` | CRUD, publish, versions, rollback |
 | Tools | `/api/v1/tools` | CRUD, enable, disable, and connection test |
-| Knowledge bases | `/api/v1/knowledge-bases` | CRUD, document metadata, and segments |
+| Knowledge bases | `/api/v1/knowledge-bases` | CRUD/config, MinIO upload/download, processing retry, documents, segments, and retrieval tests |
 | Agents | `/api/v1/agents` | CRUD, publish, versions, rollback, start, stop, and invoke |
 
 The fixed `/users/me` route must remain registered before `/users/{user_id}` so FastAPI does not attempt to parse `me` as an integer.

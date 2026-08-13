@@ -41,6 +41,35 @@ export const endpoints = {
   toolTest: (toolId: number) =>
     `/api/backend/api/v1/tools/${toolId}/test`,
   knowledgeBases: "/api/backend/api/v1/knowledge-bases",
+  knowledgeBase: (knowledgeBaseId: number) =>
+    `/api/backend/api/v1/knowledge-bases/${knowledgeBaseId}`,
+  knowledgeBaseConfig: (knowledgeBaseId: number) =>
+    `/api/backend/api/v1/knowledge-bases/${knowledgeBaseId}/config`,
+  knowledgeDocuments: (knowledgeBaseId: number) =>
+    `/api/backend/api/v1/knowledge-bases/${knowledgeBaseId}/documents`,
+  knowledgeDocument: (knowledgeBaseId: number, documentId: number) =>
+    `/api/backend/api/v1/knowledge-bases/${knowledgeBaseId}/documents/${documentId}`,
+  knowledgeDocumentDownload: (
+    knowledgeBaseId: number,
+    documentId: number,
+  ) =>
+    `/api/backend/api/v1/knowledge-bases/${knowledgeBaseId}/documents/${documentId}/download`,
+  knowledgeDocumentRetry: (
+    knowledgeBaseId: number,
+    documentId: number,
+  ) =>
+    `/api/backend/api/v1/knowledge-bases/${knowledgeBaseId}/documents/${documentId}/retry`,
+  knowledgeSegments: (knowledgeBaseId: number) =>
+    `/api/backend/api/v1/knowledge-bases/${knowledgeBaseId}/segments`,
+  knowledgeDocumentSegments: (
+    knowledgeBaseId: number,
+    documentId: number,
+  ) =>
+    `/api/backend/api/v1/knowledge-bases/${knowledgeBaseId}/documents/${documentId}/segments`,
+  knowledgeSegment: (knowledgeBaseId: number, segmentId: number) =>
+    `/api/backend/api/v1/knowledge-bases/${knowledgeBaseId}/segments/${segmentId}`,
+  knowledgeRetrievalTest: (knowledgeBaseId: number) =>
+    `/api/backend/api/v1/knowledge-bases/${knowledgeBaseId}/retrieval-test`,
   agents: "/api/backend/api/v1/agents",
   agent: (agentId: number) =>
     `/api/backend/api/v1/agents/${agentId}`,

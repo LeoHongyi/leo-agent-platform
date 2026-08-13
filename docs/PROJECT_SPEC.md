@@ -2,7 +2,7 @@
 
 > 面向 Codex Sol 的项目接手文档
 >
-> 最后核对日期：2026-07-31
+> 最后核对日期：2026-08-06
 >
 > 本文描述项目约束和演进背景；最新交付状态以 [`IMPLEMENTATION_SUMMARY.md`](IMPLEMENTATION_SUMMARY.md) 为准。
 
@@ -30,7 +30,7 @@ Leo Agent Platform 的长期目标是提供一个智能体平台，逐步支持�
 - 任务编排；
 - 对象存储和运行记录。
 
-当前已完成平台基础后端、RBAC、Provider、Model、Prompt 版本管理、Tool 全栈管理、Agent 聚合/运行时/管理端联调、知识库后端基础以及主要管理端页面。任务编排、真正的向量检索和真实 MinIO 文档处理仍未实现。
+当前已完成平台基础后端、RBAC、Provider、Model、Prompt 版本管理、Tool 全栈管理、Agent 聚合/运行时、MinIO 知识库文档处理以及对应管理端联调。任务编排、Embedding、向量索引和真正的语义或混合重排仍未实现。
 
 ## 3. 当前状态总览
 
@@ -48,13 +48,13 @@ Leo Agent Platform 的长期目标是提供一个智能体平台，逐步支持�
 | Prompt | 已实现 | Draft、发布、版本快照、历史列表和回滚 |
 | Tool | 前后端已实现 | CRUD、鉴权、启用/禁用/error 状态机、JSON 配置和 HTTP API 真实测试 |
 | Agent | 前后端已实现 | 强类型聚合配置、鉴权、发布/版本/回滚、状态机、真实 Provider 调用、7 日统计和管理端联调 |
-| Knowledge Base | 后端基础已实现 | CRUD、文档元数据和分段管理；真实 MinIO 处理与前端待实现 |
-| 数据库迁移 | 已实现 | Alembic 单线迁移，当前 head 为 `6e5073fe3459` |
+| Knowledge Base | 前后端已实现 | CRUD/配置、MinIO 上传下载、后台解析分段、重试、分段管理、词法检索测试和管理端完整联调 |
+| 数据库迁移 | 已实现 | Alembic 单线迁移，当前 head 为 `d7f26b91a403` |
 | 自动化测试 | 已实现 | 后端与前端测试数量以实际测试命令输出为准 |
 | Docker 基础设施 | 已实现 | MySQL、Redis、MinIO |
-| 前端 | 已实现主要页面 | 登录、工作台、用户、角色、权限、Provider、Model、Prompt、Tool、Agent |
+| 前端 | 已实现主要页面 | 登录、工作台、用户、角色、权限、Provider、Model、Prompt、Tool、Knowledge Base、Agent |
 | 接口级权限保护 | 未完成 | 权限依赖已经存在，但管理接口尚未普遍接入 |
-| MinIO 业务代码 | 未完成 | 已有知识库文档元数据入口，真实上传仍是占位实现 |
+| MinIO 业务代码 | 已实现 | 启动建桶、文档上传/下载/删除、失败传播和后台处理已接入 |
 | CI/CD | 未实现 | 仓库中没有现成流水线 |
 
 ## 4. 技术栈
@@ -73,6 +73,8 @@ Leo Agent Platform 的长期目标是提供一个智能体平台，逐步支持�
 | 认证 | PyJWT 2.13.0、bcrypt 5.0.0 |
 | 验证码 | captcha 0.7.1、Pillow |
 | 日志 | Loguru |
+| 对象存储 | MinIO 7.2.20 |
+| 文档解析 | pypdf 6.14.2、python-docx 1.2.0、标准库文本解析器 |
 | 测试 | pytest、pytest-asyncio、httpx |
 | 本地基础设施 | MySQL 8.4、Redis、MinIO |
 
@@ -161,7 +163,7 @@ flowchart LR
     Service --> Repository
     Repository --> MySQL
     Service --> Redis
-    MinIO -. 文档处理待接入 .- Service
+    Service --> MinIO
 ```
 
 后端按业务模块分层：
@@ -174,7 +176,7 @@ flowchart LR
 | Repository | `src/modules/*/repository.py` | SQLAlchemy 查询和持久化 |
 | Model | `src/modules/*/model.py` | 表、字段和 ORM 关系 |
 | Core | `../src/core` | 通用配置、依赖、响应、异常和基类 |
-| Infra | `../src/infra` | 数据库 Session 和 Redis 客户端 |
+| Infra | `../src/infra` | 数据库 Session、Redis 和 MinIO 客户端 |
 
 必须遵守的边界：
 
@@ -444,7 +446,62 @@ draft/inactive -> 回滚 -> inactive
 
 首次发布为 `v1.0`，后续发布按完整历史递增小版本。版本保存名称、描述、类型、模型、Prompt 和完整配置快照；回滚不会删除后续版本。只有 `active` Agent 可以调用。运行时支持 OpenAI-compatible 与 Anthropic Messages 请求，Provider API Key 在使用时解密且不会写入响应或错误信息。
 
-当前 RAG 上下文读取现有关系型知识片段。真正的文档处理、Embedding、向量相似度和语义/混合召回尚未落地，因此不能把当前行为描述为完整向量 RAG。工具函数定义会发送给模型，但服务端尚未执行模型返回的多步 Tool Call。
+当前 RAG 上下文读取已由 MinIO 原文件解析并写入 MySQL 的已完成知识片段，并应用 `top_k` 和词法阈值。Embedding、向量索引和真正的语义/混合重排尚未落地；`semantic` 会明确返回未配置错误，`hybrid` 当前仅执行词法候选阶段。工具函数定义会发送给模型，但服务端尚未执行模型返回的多步 Tool Call。
+
+### 9.7 Knowledge Base
+
+全部 Knowledge Base 路由都要求 Bearer Token：
+
+| 方法 | 路径 | 说明 |
+| --- | --- | --- |
+| POST | `/api/v1/knowledge-bases` | 创建知识库 |
+| GET | `/api/v1/knowledge-bases` | 分页和关键词搜索 |
+| GET/PUT/DELETE | `/api/v1/knowledge-bases/{kb_id}` | 详情、更新和删除 |
+| PUT | `/api/v1/knowledge-bases/{kb_id}/config` | 更新分段与检索默认配置 |
+| POST/GET | `/api/v1/knowledge-bases/{kb_id}/documents` | 上传并异步处理、分页查询文档 |
+| GET/DELETE | `/api/v1/knowledge-bases/{kb_id}/documents/{doc_id}` | 文档详情和删除 |
+| GET | `/api/v1/knowledge-bases/{kb_id}/documents/{doc_id}/download` | 下载 MinIO 原文件 |
+| POST | `/api/v1/knowledge-bases/{kb_id}/documents/{doc_id}/retry` | 重新处理失败或已完成文档 |
+| GET | `/api/v1/knowledge-bases/{kb_id}/segments` | 分页、关键词和 document_id 过滤分段 |
+| GET | `/api/v1/knowledge-bases/{kb_id}/documents/{doc_id}/segments` | 查询指定文档分段 |
+| PUT/DELETE | `/api/v1/knowledge-bases/{kb_id}/segments/{seg_id}` | 编辑或删除已完成文档的分段 |
+| POST | `/api/v1/knowledge-bases/{kb_id}/retrieval-test` | 对已完成文档执行检索测试 |
+
+上传支持 `txt`、`md`、`csv`、`html`、`docx` 和文本型 `pdf`，默认上限 20 MB。扫描版 PDF 不包含可提取文本时会进入失败状态，不在本阶段提供 OCR。
+
+```text
+Document: pending -> processing -> completed | failed
+Knowledge Base:
+  无文档 -> empty
+  尚无完成文档且有任务处理中 -> indexing
+  至少有一个完成文档 -> ready
+  仅有失败文档 -> error
+```
+
+上传 Service 在登记 MinIO 对象和文档元数据后显式提交，再把唯一的 `document_id` 交给 `BackgroundTasks`。任务使用自己的 `AsyncSession`，按 `KnowledgeBase -> Document -> Segment` 的统一加锁顺序领取任务，并在解析完成后幂等替换分段和聚合重算计数。删除操作会在同一数据库事务中写入持久化 MinIO 清理记录；即时清理失败时保留任务，并在下次启动继续恢复。文档解析调度本身仍适合当前单进程开发环境；进程崩溃恢复和多 Worker 持久任务未来应迁移到 Celery/队列加 outbox。
+
+#### 9.7.1 管理端页面和接口联调
+
+Knowledge Base 管理端包含两个受保护路由：
+
+- `/knowledge-bases`：知识库分页搜索、创建、编辑和删除
+- `/knowledge-bases/[kbId]`：知识库详情工作台，集中管理配置、文档、分段和检索测试
+
+详情工作台支持以下操作：
+
+- 编辑基础信息、分段参数和检索默认值
+- 上传文档，并在文档处于 `pending` 或 `processing` 时轮询状态
+- 下载 MinIO 原文件，重试失败或已完成文档，以及删除非处理中文档
+- 按关键词和文档筛选分段，编辑已完成文档的分段内容和关键词，以及删除分段
+- 使用 `keyword` 或 `hybrid` 策略执行检索测试，并展示分数和来源文档
+
+管理端从 `../docs/openai.json` 定义 Zod 契约，并通过 `z.infer` 推导 TypeScript 类型。契约包含 Knowledge Base、Document、Segment、创建和更新输入、配置输入、检索输入与结果，以及对应状态枚举。创建和配置表单会校验 `chunk_overlap < chunk_size`，后端仍负责最终校验。
+
+TanStack Query Key 以 `knowledge-bases` 为统一前缀，并分别标识列表、详情、文档列表、文档详情和分段列表。创建、更新、上传、重试和删除 Mutation 会失效受影响的列表、详情和聚合计数。文档轮询只在存在 `pending` 或 `processing` 状态时运行；所有任务结束后停止轮询并刷新知识库统计。
+
+Next.js BFF 只代理 Knowledge Base OpenAPI 中声明的精确方法和路径，动态 ID 只接受正整数。浏览器上传时使用 `multipart/form-data`，BFF 保留浏览器生成的 boundary 和请求体。下载响应不经过 JSON 解析；BFF 流式透传二进制响应及 `Content-Type`、`Content-Disposition` 和 `Content-Length` 安全响应头。JSON 响应继续执行统一业务码归一化和 Zod 边界校验。
+
+当前真实联调覆盖前端 API Client、Next.js BFF、FastAPI、MySQL 和 MinIO 的创建、上传、后台处理、状态轮询、分段查询、词法检索、原文件下载和删除链路。该范围不包含 Embedding 或向量索引；`semantic` 仍返回业务错误 `43011`，`hybrid` 仍使用词法候选阶段。
 
 ## 10. 认证和 RBAC
 
@@ -555,11 +612,19 @@ REDIS_PORT=6379
 REDIS_PASSWORD=<与 Docker REDIS_PASSWORD 相同>
 REDIS_DB=0
 
+MINIO_ENDPOINT=127.0.0.1:9000
+MINIO_ACCESS_KEY=<与 MINIO_ROOT_USER 相同>
+MINIO_SECRET_KEY=<与 MINIO_ROOT_PASSWORD 相同>
+MINIO_BUCKET=knowledge-docs
+MINIO_SECURE=false
+KNOWLEDGE_MAX_FILE_SIZE_MB=20
+KNOWLEDGE_MAX_SEGMENTS=10000
+
 LOG_LEVEL=DEBUG
 LOG_DIR=logs
 ```
 
-当前根目录 `../.env.example` 缺少 Redis 配置，这是文档记录的待修项。真实 `../.env` 和 Token 不能提交。
+根目录 `../.env.example` 已包含 MySQL、Redis、MinIO 和文档处理上限模板。真实 `../.env` 和 Token 不能提交。
 
 配置优先级：
 
@@ -567,7 +632,7 @@ LOG_DIR=logs
 系统环境变量 > 根目录 .env > Settings 默认值
 ```
 
-如果 MySQL 报 `using password: NO`，优先检查：
+Settings 使用源码目录定位根 `.env`，不依赖 PyCharm Working directory。如果 MySQL 报 `using password: NO`，优先检查：
 
 - Working directory 是否为仓库根目录；
 - `../.env` 是否存在；
@@ -627,6 +692,9 @@ e47d49fe2ebb
   -> 7a9cfbe79ed3
   -> ad7bfa59fd52
   -> 6e5073fe3459
+  -> b8c4e1a72d90
+  -> c3d91a4f2e76
+  -> d7f26b91a403
 ```
 
 新环境迁移后不会自动创建初始管理员、角色或权限，因为仓库尚无 seed/bootstrap 机制。
@@ -672,7 +740,7 @@ Python Run Configuration：
 7. JWT 不写入 `localStorage` 或可由客户端 JavaScript 读取的 Zustand store。
 8. shadcn/ui 组件放在 `components/ui`，业务组件不直接堆进该目录。
 9. 前端展示权限不能代替后端授权。
-10. Agent 页面必须直接使用已发布的后端 OpenAPI 契约，不复制或猜测聚合配置字段。
+10. Agent 和 Knowledge Base 页面必须直接使用已发布的后端 OpenAPI 契约，不复制或猜测字段。
 
 ### 12.2 目标目录
 
@@ -695,7 +763,10 @@ app/
     │   │   ├── page.tsx
     │   │   ├── users/
     │   │   ├── roles/
-    │   │   └── permissions/
+    │   │   ├── permissions/
+    │   │   └── knowledge-bases/
+    │   │       ├── page.tsx
+    │   │       └── [kbId]/page.tsx
     │   ├── api/
     │   │   ├── auth/
     │   │   │   ├── login/route.ts
@@ -716,7 +787,8 @@ app/
     │   ├── auth/
     │   ├── users/
     │   ├── roles/
-    │   └── permissions/
+    │   ├── permissions/
+    │   └── knowledge-bases/
     ├── lib/
     │   ├── api/
     │   │   ├── client.ts         # 浏览器调用同源 Next API
@@ -826,6 +898,8 @@ maxAge: 1800
 - 当前 FastAPI 没有配置 CORS，也不会阻塞同源 BFF 方案；
 - 后端地址只需要存在服务端环境变量中。
 
+通用后端代理使用方法和路径组成的精确白名单，不接受浏览器提供的目标 URL。Knowledge Base 白名单覆盖 CRUD、配置、文档、分段和检索测试路由，并要求路径参数是正整数。BFF 保留 multipart 上传的 boundary；文件下载使用二进制流式响应，不把内容转换成文本或 JSON。
+
 不要在 `NEXT_PUBLIC_*`、Zustand、TanStack Query Cache 或日志中保存 Token。
 
 ### 14.2 登录
@@ -883,6 +957,8 @@ export const pageResultSchema = <T extends z.ZodType>(item: T) =>
 4. 如果业务 `code !== 200`，抛出统一 `ApiError`；
 5. 如果是 HTTP 422，解析 FastAPI `detail`；
 6. Schema 不匹配时记录安全的诊断信息，不记录 Token、密码或完整敏感响应。
+
+以上流程适用于 JSON 接口。文件上传使用独立的 FormData 请求函数，文件下载使用独立的 Blob 请求函数和 BFF 二进制透传，二者都不经过 JSON 序列化。
 
 后端当前个别异常构造存在把字符串误传给 `code` 的问题。前端应该把这种响应识别为契约错误，后端则应优先修复，而不是长期放宽通用 Schema。
 
@@ -1034,7 +1110,9 @@ pnpm dev
 6. 角色分页搜索、CRUD 和权限分配；
 7. 权限分页搜索和 CRUD；
 8. 错误页、空状态、Loading Skeleton 和 Toast；
-9. 自动化测试、可访问性和生产构建验证。
+9. Provider、Model、Prompt、Tool 和 Agent 管理端联调；
+10. Knowledge Base CRUD、详情工作台和文件链路联调；
+11. 自动化测试、可访问性和生产构建验证。
 
 第一阶段路由：
 
@@ -1050,9 +1128,11 @@ pnpm dev
 | `/models` | Model CRUD 和 Provider 筛选 |
 | `/prompts` | Prompt CRUD、发布、版本历史和回滚 |
 | `/tools` | Tool CRUD、启停状态流转、Function Calling 配置和真实调用测试 |
+| `/knowledge-bases` | Knowledge Base 分页搜索、创建、编辑和删除 |
+| `/knowledge-bases/[kbId]` | 配置、文档上传与轮询、下载、重试、分段管理和检索测试 |
 | `/agents` | Agent 聚合配置、发布、版本、回滚、启停、真实调用和删除 |
 
-Agent 管理端已按 `../docs/openai.json` 中的强类型配置和状态机完成联调。不要创建 Task 假数据页面；Task 目前没有后端契约。Knowledge Base 前端应在真实文件存储流程完成后接入。
+Agent 和 Knowledge Base 管理端已按 `../docs/openai.json` 中的强类型配置、状态机和文件契约完成联调。Knowledge Base 文件上传使用 multipart BFF 透传，原文件下载使用二进制流式透传。不要创建 Task 假数据页面；Task 目前没有后端契约。
 
 ## 18. 测试与质量基线
 
@@ -1073,6 +1153,8 @@ Agent 管理端已按 `../docs/openai.json` 中的强类型配置和状态机完
 - Agent 强类型 Schema、聚合引用校验、状态机和完整版本快照；
 - OpenAI-compatible 与 Anthropic 运行时协议适配；
 - Agent 从创建、发布、启动、调用、停止、再发布、回滚到删除的真实接口联调。
+- Knowledge Base Schema、路由、Service、MinIO 客户端、六类解析器、后台任务状态机、分段和检索测试；
+- 真实 MySQL + MinIO 的创建、上传、后台解析、ready、检索、下载、删除与对象清理联调。
 
 提交后端改动前：
 
@@ -1092,8 +1174,12 @@ git diff --check
 - 用户、角色、权限关键交互测试；
 - Provider、Model、Prompt API 契约测试；
 - Agent 聚合配置、生命周期、发布/回滚和调用 API 契约测试；
+- Knowledge Base Zod 契约、API Client、Query Key、Mutation 失效和轮询条件测试；
+- Knowledge Base multipart 上传与 BFF 二进制下载透传测试；
 - BFF 登录/登出和 Cookie 行为测试；
 - 至少一条登录到后台的浏览器级 smoke test。
+
+Knowledge Base 真实联调使用本地 MySQL 和 MinIO，覆盖创建、上传、等待后台处理、分段读取、检索、下载和删除。测试将 `semantic` 返回 `43011` 视为当前正确行为，并验证 `hybrid` 只执行词法候选阶段，不将结果表述为向量相似度。
 
 提交前端改动前：
 
@@ -1121,22 +1207,21 @@ pnpm build
 
 ### P1：尽早修正
 
-1. `../.env.example` 缺少 `REDIS_HOST`、`REDIS_PORT`、`REDIS_PASSWORD` 和 `REDIS_DB`。
-2. API 路径的尾部斜杠和 summary 命名不一致。
-3. `RoleRepository.delete_by_id()` 自行 commit，破坏了请求级事务边界。
-4. Schema 缺少更严格的长度、空白、密码复杂度和 code 格式验证。
-5. 权限 code 的 `:` 与 `.` 命名风格尚未统一。
-6. 缺少 CORS。采用 Next.js BFF 时浏览器不直连 FastAPI，可以暂不开放；若未来直连则必须配置精确 Origin，不能使用宽泛生产配置。
-7. Redis Docker 镜像使用 `latest`，可复现部署前应固定版本。
-8. 没有统一 lint/format/type-check 配置和 CI。
-9. Alembic 需要在 `env.py` 显式导入每个 Model 模块，新增模块时容易漏表。
-10. Knowledge Base 文档上传仍使用路径占位，尚未真正写入 MinIO。
+1. API 路径的尾部斜杠和 summary 命名不一致。
+2. `RoleRepository.delete_by_id()` 自行 commit，破坏了请求级事务边界。
+3. Schema 缺少更严格的长度、空白、密码复杂度和 code 格式验证。
+4. 权限 code 的 `:` 与 `.` 命名风格尚未统一。
+5. 缺少 CORS。采用 Next.js BFF 时浏览器不直连 FastAPI，可以暂不开放；若未来直连则必须配置精确 Origin，不能使用宽泛生产配置。
+6. Redis Docker 镜像使用 `latest`，可复现部署前应固定版本。
+7. 没有统一 lint/format/type-check 配置和 CI。
+8. Alembic 需要在 `env.py` 显式导入每个 Model 模块，新增模块时容易漏表。
+9. Knowledge Base 使用进程内 `BackgroundTasks`，尚无持久队列、outbox 和崩溃自动恢复机制。
 
 ### P2：长期演进
 
 - Task 等领域模型和 API；
 - Tool 的内置工具与自定义函数安全执行器；
-- Knowledge Base 的真实文件存储、解析、分段和向量化；
+- Knowledge Base 的 Embedding、向量索引和语义/混合重排；
 - 审计日志；
 - 可观测性和错误追踪；
 - OpenAPI 到前端类型/Schema 的受控生成；

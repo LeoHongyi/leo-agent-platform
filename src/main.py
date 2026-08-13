@@ -1,6 +1,9 @@
+import asyncio
 from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from loguru import logger
+
 from src.core.config import get_settings
 from src.core.logger import setup_logger
 from src.infra.database import engine
@@ -17,15 +20,32 @@ from src.modules.prompt.api import router as prompt_router
 from src.modules.KnowledgeBase.api import router as knowledge_router
 from src.modules.tool.api import router as tool_router
 from src.modules.agent.api import router as agent_router
+from src.infra.minio_client import ensure_bucket_exists
+from src.modules.KnowledgeBase.tasks import process_storage_cleanup_jobs
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     setup_logger()
     settings = get_settings()
     logger.info(f"{settings.APP_NAME} starting | env={settings.APP_ENV}")
+    try:
+        await asyncio.to_thread(ensure_bucket_exists)
+        logger.info(f"MinIO 连接成功，bucket: {settings.MINIO_BUCKET}")
+    except Exception as exc:
+        logger.warning(f"MinIO 连接失败，文档上传功能不可用: {exc}")
+    else:
+        try:
+            cleaned = await process_storage_cleanup_jobs()
+            if cleaned:
+                logger.info(f"已恢复并完成 {cleaned} 个 MinIO 清理任务")
+        except Exception as exc:
+            logger.warning(f"MinIO 清理任务恢复失败: {exc}")
+
     yield
     await engine.dispose()
     logger.info(f"{settings.APP_NAME} shutdown")
+
 
 def create_app() -> FastAPI:
     settings = get_settings()

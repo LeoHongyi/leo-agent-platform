@@ -1,5 +1,19 @@
-from sqlalchemy import String, Text, BigInteger, Integer, ForeignKey, JSON
+from datetime import datetime
+
+from sqlalchemy import (
+    BigInteger,
+    DateTime,
+    Float,
+    ForeignKey,
+    Integer,
+    JSON,
+    Index,
+    String,
+    Text,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 from src.core.base_model import BaseModel
 
 
@@ -23,6 +37,22 @@ class KnowledgeBase(BaseModel):
     embedding_model: Mapped[str] = mapped_column(
         String(100), default="text-embedding-ada-002", comment="向量化模型"
     )
+    chunk_method: Mapped[str] = mapped_column(
+        String(20), default="fixed", comment="分段方式: fixed/sentence/paragraph"
+    )
+    chunk_size: Mapped[int] = mapped_column(
+        Integer, default=500, comment="分段大小（tokens）"
+    )
+    chunk_overlap: Mapped[int] = mapped_column(
+        Integer, default=50, comment="重叠大小（tokens）"
+    )
+    retrieval_strategy: Mapped[str] = mapped_column(
+        String(20), default="hybrid", comment="检索策略: keyword/semantic/hybrid"
+    )
+    top_k: Mapped[int] = mapped_column(Integer, default=5, comment="返回结果数")
+    similarity_threshold: Mapped[float] = mapped_column(
+        Float, default=0.7, comment="相似度阈值"
+    )
     created_by: Mapped[str | None] = mapped_column(
         String(100), nullable=True, comment="创建者"
     )
@@ -31,12 +61,20 @@ class KnowledgeBase(BaseModel):
     documents: Mapped[list["Document"]] = relationship(
         "Document", back_populates="knowledge_base",
         cascade="all, delete-orphan",  # 删除知识库时级联删除文档
+        passive_deletes=True,
     )
 
 
 class Document(BaseModel):
     """文档表"""
     __tablename__ = "documents"
+    __table_args__ = (
+        Index(
+            "ix_documents_knowledge_base_status",
+            "knowledge_base_id",
+            "status",
+        ),
+    )
 
     knowledge_base_id: Mapped[int] = mapped_column(
         BigInteger, ForeignKey("knowledge_bases.id", ondelete="CASCADE"),
@@ -68,6 +106,9 @@ class Document(BaseModel):
     uploaded_by: Mapped[str | None] = mapped_column(
         String(100), nullable=True, comment="上传者"
     )
+    processed_at: Mapped[datetime | None] = mapped_column(
+        DateTime, nullable=True, comment="处理完成时间"
+    )
 
     # 关联
     knowledge_base: Mapped["KnowledgeBase"] = relationship(
@@ -76,12 +117,26 @@ class Document(BaseModel):
     segments: Mapped[list["Segment"]] = relationship(
         "Segment", back_populates="document",
         cascade="all, delete-orphan",
+        passive_deletes=True,
     )
 
 
 class Segment(BaseModel):
     """文档分段表"""
     __tablename__ = "segments"
+    __table_args__ = (
+        UniqueConstraint(
+            "document_id",
+            "position",
+            name="uq_segments_document_position",
+        ),
+        Index(
+            "ix_segments_knowledge_base_document_position",
+            "knowledge_base_id",
+            "document_id",
+            "position",
+        ),
+    )
 
     knowledge_base_id: Mapped[int] = mapped_column(
         BigInteger, ForeignKey("knowledge_bases.id", ondelete="CASCADE"),
@@ -101,7 +156,7 @@ class Segment(BaseModel):
     token_count: Mapped[int] = mapped_column(
         Integer, default=0, comment="Token 数"
     )
-    keywords: Mapped[dict | None] = mapped_column(
+    keywords: Mapped[list[str] | None] = mapped_column(
         JSON, nullable=True, comment="关键词列表"
     )
     hit_count: Mapped[int] = mapped_column(
@@ -111,4 +166,26 @@ class Segment(BaseModel):
     # 关联
     document: Mapped["Document"] = relationship(
         "Document", back_populates="segments"
+    )
+
+
+class StorageCleanupJob(BaseModel):
+    """Durable MinIO cleanup work created in the same DB delete transaction."""
+
+    __tablename__ = "knowledge_storage_cleanup_jobs"
+
+    object_name: Mapped[str] = mapped_column(
+        String(1000),
+        comment="待删除的 MinIO 对象路径",
+    )
+    attempts: Mapped[int] = mapped_column(
+        Integer,
+        default=0,
+        index=True,
+        comment="清理尝试次数",
+    )
+    last_error: Mapped[str | None] = mapped_column(
+        String(500),
+        nullable=True,
+        comment="最近一次脱敏错误",
     )

@@ -4,50 +4,21 @@ import {
   ACCESS_TOKEN_COOKIE,
   sessionCookieOptions,
 } from "@/lib/auth/session"
+import {
+  downloadResponseHeaders,
+  isAllowedRoute,
+  isJsonContentType,
+  isKnowledgeDownloadRoute,
+  isPublicRoute,
+  readBusinessCode,
+  requestTimeoutMs,
+} from "@/lib/api/backend-proxy"
 import { normalizeHttpStatus } from "@/lib/api/response"
 import { serverEnv } from "@/lib/env"
 
 type RouteContext = {
   params: Promise<{ path: string[] }>
 }
-
-const publicRoutes = new Set([
-  "GET /api/v1/captcha",
-  "POST /api/v1/captcha/verify",
-  "GET /health",
-])
-
-const allowedRoutes = [
-  /^(GET|POST) \/api\/v1\/users$/,
-  /^(GET) \/api\/v1\/users\/me$/,
-  /^(GET) \/api\/v1\/users\/\d+$/,
-  /^(GET|PUT) \/api\/v1\/users\/\d+\/roles$/,
-  /^(GET) \/api\/v1\/auth\/access$/,
-  /^(GET|POST) \/api\/v1\/permissions\/?$/,
-  /^(GET|PUT|DELETE) \/api\/v1\/permissions\/\d+$/,
-  /^(GET|POST) \/api\/v1\/roles$/,
-  /^(GET|PUT|DELETE) \/api\/v1\/roles\/\d+$/,
-  /^(PUT) \/api\/v1\/roles\/\d+\/permissions$/,
-  /^(GET|POST) \/api\/v1\/providers$/,
-  /^(GET|PUT|DELETE) \/api\/v1\/providers\/\d+$/,
-  /^(POST) \/api\/v1\/providers\/\d+\/test$/,
-  /^(GET|POST) \/api\/v1\/models$/,
-  /^(GET|PUT|DELETE) \/api\/v1\/models\/\d+$/,
-  /^(GET|POST) \/api\/v1\/prompts$/,
-  /^(GET|PUT|DELETE) \/api\/v1\/prompts\/\d+$/,
-  /^(POST) \/api\/v1\/prompts\/\d+\/(?:publish|rollback)$/,
-  /^(GET) \/api\/v1\/prompts\/\d+\/versions$/,
-  /^(GET|POST) \/api\/v1\/tools$/,
-  /^(GET|PUT|DELETE) \/api\/v1\/tools\/\d+$/,
-  /^(POST) \/api\/v1\/tools\/\d+\/(?:enable|disable|test)$/,
-  /^(GET) \/api\/v1\/knowledge-bases$/,
-  /^(GET|POST) \/api\/v1\/agents$/,
-  /^(GET|PUT|DELETE) \/api\/v1\/agents\/\d+$/,
-  /^(POST) \/api\/v1\/agents\/\d+\/(?:start|stop|publish|rollback|invoke)$/,
-  /^(GET) \/api\/v1\/agents\/\d+\/versions$/,
-  /^(GET|POST) \/api\/v1\/captcha(?:\/verify)?$/,
-  /^(GET) \/health$/,
-]
 
 export const dynamic = "force-dynamic"
 export const maxDuration = 310
@@ -71,16 +42,15 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
 async function forwardRequest(request: NextRequest, context: RouteContext) {
   const { path: segments } = await context.params
   const path = `/${segments.join("/")}`
-  const routeKey = `${request.method} ${path}`
 
-  if (!allowedRoutes.some((pattern) => pattern.test(routeKey))) {
+  if (!isAllowedRoute(request.method, path)) {
     return NextResponse.json(
       { code: 404, message: "该后端路径未开放", data: null },
       { status: 404 },
     )
   }
 
-  const isPublic = publicRoutes.has(routeKey)
+  const isPublic = isPublicRoute(request.method, path)
   const token = request.cookies.get(ACCESS_TOKEN_COOKIE)?.value
   if (!isPublic && !token) {
     return NextResponse.json(
@@ -96,20 +66,36 @@ async function forwardRequest(request: NextRequest, context: RouteContext) {
     url.search = request.nextUrl.search
 
     const contentType = request.headers.get("content-type")
-    const upstream = await fetch(url, {
+    const requestBody =
+      request.method === "GET" || request.method === "HEAD"
+        ? null
+        : request.body
+    const requestInit: RequestInit & { duplex?: "half" } = {
       method: request.method,
       headers: {
-        Accept: "application/json",
+        Accept: isKnowledgeDownloadRoute(request.method, path)
+          ? "*/*"
+          : "application/json",
         ...(contentType ? { "Content-Type": contentType } : {}),
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
-      body:
-        request.method === "GET" || request.method === "HEAD"
-          ? undefined
-          : await request.arrayBuffer(),
       cache: "no-store",
-      signal: AbortSignal.timeout(requestTimeoutMs(path)),
-    })
+      signal: AbortSignal.timeout(requestTimeoutMs(request.method, path)),
+      ...(requestBody ? { body: requestBody, duplex: "half" } : {}),
+    }
+    const upstream = await fetch(url, requestInit)
+
+    const upstreamContentType = upstream.headers.get("content-type")
+    if (
+      upstream.ok &&
+      isKnowledgeDownloadRoute(request.method, path) &&
+      !isJsonContentType(upstreamContentType)
+    ) {
+      return new NextResponse(upstream.body, {
+        status: upstream.status,
+        headers: downloadResponseHeaders(upstream.headers),
+      })
+    }
 
     const text = await upstream.text()
     let payload: unknown = null
@@ -143,22 +129,4 @@ async function forwardRequest(request: NextRequest, context: RouteContext) {
       { status: 502 },
     )
   }
-}
-
-function requestTimeoutMs(path: string) {
-  return /^\/api\/v1\/agents\/\d+\/invoke$/.test(path)
-    ? 305_000
-    : 10_000
-}
-
-function readBusinessCode(payload: unknown) {
-  if (
-    typeof payload === "object" &&
-    payload !== null &&
-    "code" in payload &&
-    typeof payload.code === "number"
-  ) {
-    return payload.code
-  }
-  return null
 }

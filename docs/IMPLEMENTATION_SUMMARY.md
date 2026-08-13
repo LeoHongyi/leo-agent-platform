@@ -58,15 +58,19 @@ This document summarizes the implementation currently prepared in the working br
 - Backend contract, executor, schema, and state-machine tests
 - Frontend search, pagination, registration, editing, deletion, state transitions, JSON configuration, and live execution tests
 
-### Knowledge Base Foundation
+### Knowledge Base Ingestion
 
-- Initial knowledge-base, document, and segment ORM structures
-- Schemas, repositories, services, and CRUD routes
-- JWT authentication on the knowledge-base router
-- Document metadata upload flow with a temporary storage-path placeholder
-- Segment listing, editing, and deletion
-- Alembic migration support
-- Frontend pages and real MinIO upload processing are not implemented yet
+- Authenticated knowledge-base CRUD and independent ingestion/retrieval configuration updates
+- Real MinIO upload, download, per-document cleanup, and knowledge-base cleanup
+- Durable MinIO cleanup records committed with logical deletes, immediate best-effort execution, and startup recovery
+- In-process FastAPI background task entry point with task-owned database sessions and a durable pre-scheduling commit boundary
+- TXT, Markdown, CSV, HTML, DOCX, and text-based PDF extraction with size, archive, page, and segment safeguards
+- Fixed, sentence-aware, and paragraph-aware chunking with overlap validation
+- Idempotent segment replacement, document retry, and aggregate document/segment count recalculation
+- Explicit `pending → processing → completed|failed` document lifecycle and `empty|indexing|ready|error` knowledge-base lifecycle
+- Paginated document/segment administration and completed-document-only lexical retrieval testing
+- Schema, route, service, parser, task-orchestration, MinIO client, migration, and real MySQL/MinIO lifecycle verification
+- The administration-console page and true embedding/vector retrieval remain future work
 
 ### Agent Runtime
 
@@ -106,6 +110,7 @@ The checked-in contract is stored in [`docs/openai.json`](openai.json). The main
 | Models | `/api/v1/models`, `/api/v1/models/{model_id}` |
 | Prompts | `/api/v1/prompts`, `/api/v1/prompts/{prompt_id}`, publish, versions, and rollback subpaths |
 | Tools | `/api/v1/tools`, `/api/v1/tools/{tool_id}`, enable, disable, and test subpaths |
+| Knowledge bases | `/api/v1/knowledge-bases`, config, document upload/detail/download/retry, segment, and retrieval-test subpaths |
 | Agents | `/api/v1/agents`, `/api/v1/agents/{agent_id}`, start, stop, publish, versions, rollback, and invoke subpaths |
 
 ## Verification Baseline
@@ -121,6 +126,7 @@ The implementation has been checked with:
 - Real HTTP lifecycle checks for provider, model, and prompt management
 - Prompt lifecycle check: create → publish `v1.0` → edit → publish `v1.1` → rollback `v1.0` → delete
 - Alembic head and ORM drift validation with `alembic check`
+- Real Knowledge Base lifecycle check: create → MinIO upload → background parse/chunk → ready → retrieve/download → delete, including object cleanup
 - Agent aggregate lifecycle check with temporary Provider, Model, Prompt, Knowledge Base, and Tool resources
 - Agent lifecycle check: draft → publish `v1.0` → start → invoke → stop → edit → publish `v1.1` → rollback `v1.0` → delete
 - Real local provider invocation with verified rolling metrics and automatic test-data cleanup
@@ -132,9 +138,8 @@ The exact test count may grow as the codebase evolves; command success is the ma
 
 ## Known Boundaries
 
-- Knowledge-base APIs are preliminary and do not yet have a frontend.
-- The document upload route records metadata and a placeholder path; real MinIO upload processing is not integrated yet.
-- Agent RAG uses the current relational knowledge-base segments; ingestion, embeddings, and true vector/hybrid retrieval remain future work.
+- Knowledge-base APIs are implemented but do not yet have an administration-console page.
+- Agent RAG and retrieval tests use completed relational segments and lexical scoring. Embeddings, a vector index, and true semantic/hybrid re-ranking remain future work; semantic-only requests are rejected explicitly.
 - Agent function definitions are forwarded to model providers, but a server-side multi-step tool-execution loop is not implemented yet.
 - Task orchestration remains a future module.
 - Tool management currently supports real HTTP API tests; built-in and custom-function runtime executors remain future work.
@@ -143,7 +148,7 @@ The exact test count may grow as the codebase evolves; command success is the ma
 
 ## Recommended Next Steps
 
-1. Complete knowledge-base ingestion, vector retrieval, and administration pages.
+1. Add embeddings/vector retrieval and the Knowledge Base administration page.
 2. Add a guarded multi-step tool-execution loop for Agent invocations.
 3. Add conversation history persistence and streaming Agent responses.
 4. Standardize backend HTTP status codes and error envelopes.

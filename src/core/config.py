@@ -1,5 +1,11 @@
-from pydantic_settings import BaseSettings
 from functools import lru_cache
+from pathlib import Path
+
+from pydantic import Field
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+
 
 class Settings(BaseSettings):
     APP_NAME: str = "MyApp"
@@ -25,6 +31,15 @@ class Settings(BaseSettings):
     LOG_LEVEL: str = "DEBUG"
     LOG_DIR: str = "logs"
 
+    # MinIO
+    MINIO_ENDPOINT: str = "localhost:9000"
+    MINIO_ACCESS_KEY: str = ""
+    MINIO_SECRET_KEY: str = ""
+    MINIO_BUCKET: str = "knowledge-docs"
+    MINIO_SECURE: bool = False
+    KNOWLEDGE_MAX_FILE_SIZE_MB: int = Field(default=20, ge=1, le=500)
+    KNOWLEDGE_MAX_SEGMENTS: int = Field(default=10_000, ge=1, le=100_000)
+
     @property
     def DATABASE_URL(self) -> str:
         return (
@@ -33,8 +48,11 @@ class Settings(BaseSettings):
             f"?charset=utf8mb4"
         )
 
-    # 指定环境变量文件
-    model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
+    model_config = SettingsConfigDict(
+        env_file=PROJECT_ROOT / ".env",
+        env_file_encoding="utf-8",
+    )
+
 
 # 保存到内存缓存中。以后直接获取。这是一种单例的实现
 @lru_cache
