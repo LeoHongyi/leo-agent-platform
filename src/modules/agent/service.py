@@ -26,6 +26,7 @@ from src.modules.agent.schema import (
     AgentInvokeRequest,
     AgentInvokeResponse,
     AgentRead,
+    RetrievalStrategy,
     AgentStatus,
     AgentUpdate,
     AgentVersionRead,
@@ -554,10 +555,21 @@ class AgentService:
             prompt_parts.append(resources.config.prompt.system_prompt)
 
         if resources.config.rag.enabled:
+            if (
+                resources.config.rag.retrieval_strategy
+                == RetrievalStrategy.SEMANTIC
+            ):
+                raise BizException(
+                    code=45008,
+                    message="语义检索需要先配置知识库向量索引",
+                )
             segments = await self.segment_repo.retrieve_for_agent(
                 knowledge_base_ids=resources.config.rag.knowledge_base_ids,
                 query=user_input,
                 limit=resources.config.rag.top_k,
+                similarity_threshold=(
+                    resources.config.rag.similarity_threshold
+                ),
             )
             if segments:
                 context = "\n\n".join(

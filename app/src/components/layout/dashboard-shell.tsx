@@ -2,6 +2,7 @@
 
 import {
   Bot,
+  BookOpenText,
   CloudCog,
   Cpu,
   KeyRound,
@@ -57,6 +58,7 @@ const navigation = [
   { href: "/models", label: "模型管理", icon: Cpu },
   { href: "/prompts", label: "Prompt 管理", icon: ScrollText },
   { href: "/tools", label: "工具管理", icon: Wrench },
+  { href: "/knowledge-bases", label: "知识库管理", icon: BookOpenText },
   { href: "/agents", label: "Agent 管理", icon: Bot },
 ]
 

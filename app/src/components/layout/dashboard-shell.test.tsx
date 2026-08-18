@@ -67,6 +67,9 @@ describe("DashboardShell", () => {
     expect(
       screen.getByRole("link", { name: "工具管理" }),
     ).toHaveAttribute("href", "/tools")
+    expect(
+      screen.getByRole("link", { name: "知识库管理" }),
+    ).toHaveAttribute("href", "/knowledge-bases")
 
     await user.click(screen.getByRole("button", { name: /admin/i }))
 

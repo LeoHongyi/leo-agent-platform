@@ -23,5 +23,11 @@ export const config = {
     "/users/:path*",
     "/roles/:path*",
     "/permissions/:path*",
+    "/providers/:path*",
+    "/models/:path*",
+    "/prompts/:path*",
+    "/tools/:path*",
+    "/knowledge-bases/:path*",
+    "/agents/:path*",
   ],
 }

@@ -526,17 +526,244 @@ export const toolFormSchema = z
     }
   })
 
+export const knowledgeBaseStatusSchema = z.enum([
+  "empty",
+  "indexing",
+  "ready",
+  "error",
+])
+export const documentStatusSchema = z.enum([
+  "pending",
+  "processing",
+  "completed",
+  "failed",
+])
+export const chunkMethodSchema = z.enum([
+  "fixed",
+  "sentence",
+  "paragraph",
+])
+export const retrievalStrategySchema = z.enum([
+  "keyword",
+  "semantic",
+  "hybrid",
+])
+
+const knowledgeBaseNameSchema = z
+  .string()
+  .trim()
+  .min(1, "请输入知识库名称")
+  .max(200, "知识库名称不能超过 200 个字符")
+
+const embeddingModelSchema = z
+  .string()
+  .trim()
+  .min(1, "请输入嵌入模型")
+  .max(100, "嵌入模型不能超过 100 个字符")
+
+const knowledgeDescriptionSchema = z
+  .string()
+  .max(500, "描述不能超过 500 个字符")
+  .transform((value) => value.trim() || null)
+  .nullable()
+
+const chunkConfigFields = {
+  embedding_model: embeddingModelSchema,
+  chunk_method: chunkMethodSchema,
+  chunk_size: z
+    .number("请输入分段大小")
+    .int("分段大小必须是整数")
+    .min(100, "分段大小不能小于 100")
+    .max(2_000, "分段大小不能超过 2000"),
+  chunk_overlap: z
+    .number("请输入重叠大小")
+    .int("重叠大小必须是整数")
+    .min(0, "重叠大小不能小于 0")
+    .max(500, "重叠大小不能超过 500"),
+  retrieval_strategy: retrievalStrategySchema,
+  top_k: z
+    .number("请输入返回数量")
+    .int("返回数量必须是整数")
+    .min(1, "返回数量不能小于 1")
+    .max(20, "返回数量不能超过 20"),
+  similarity_threshold: z
+    .number("请输入相似度阈值")
+    .min(0, "相似度阈值不能小于 0")
+    .max(1, "相似度阈值不能超过 1"),
+}
+
+function validateChunkOverlap(
+  value: { chunk_size?: number; chunk_overlap?: number },
+  context: z.RefinementCtx,
+) {
+  if (
+    value.chunk_size !== undefined &&
+    value.chunk_overlap !== undefined &&
+    value.chunk_overlap >= value.chunk_size
+  ) {
+    context.addIssue({
+      code: "custom",
+      path: ["chunk_overlap"],
+      message: "重叠大小必须小于分段大小",
+    })
+  }
+}
+
+export const knowledgeBaseCreateSchema = z
+  .object({
+    name: knowledgeBaseNameSchema,
+    description: knowledgeDescriptionSchema.optional().default(null),
+    embedding_model: chunkConfigFields.embedding_model.default(
+      "text-embedding-ada-002",
+    ),
+    chunk_method: chunkConfigFields.chunk_method.default("fixed"),
+    chunk_size: chunkConfigFields.chunk_size.default(500),
+    chunk_overlap: chunkConfigFields.chunk_overlap.default(50),
+    retrieval_strategy:
+      chunkConfigFields.retrieval_strategy.default("hybrid"),
+    top_k: chunkConfigFields.top_k.default(5),
+    similarity_threshold:
+      chunkConfigFields.similarity_threshold.default(0.7),
+  })
+  .strict()
+  .superRefine(validateChunkOverlap)
+
+export const knowledgeBaseUpdateSchema = z
+  .object({
+    name: knowledgeBaseNameSchema.optional(),
+    description: knowledgeDescriptionSchema.optional(),
+    embedding_model: embeddingModelSchema.optional(),
+  })
+  .strict()
+  .refine(
+    (value) => Object.values(value).some((item) => item !== undefined),
+    "至少提供一个要更新的字段",
+  )
+
+export const knowledgeBaseConfigSchema = z
+  .object({
+    embedding_model: chunkConfigFields.embedding_model.optional(),
+    chunk_method: chunkConfigFields.chunk_method.optional(),
+    chunk_size: chunkConfigFields.chunk_size.optional(),
+    chunk_overlap: chunkConfigFields.chunk_overlap.optional(),
+    retrieval_strategy:
+      chunkConfigFields.retrieval_strategy.optional(),
+    top_k: chunkConfigFields.top_k.optional(),
+    similarity_threshold:
+      chunkConfigFields.similarity_threshold.optional(),
+  })
+  .strict()
+  .superRefine((value, context) => {
+    if (!Object.values(value).some((item) => item !== undefined)) {
+      context.addIssue({
+        code: "custom",
+        message: "至少提供一个要更新的配置字段",
+      })
+    }
+    validateChunkOverlap(value, context)
+  })
+
 export const knowledgeBaseSchema = z.object({
   id: z.number().int().positive(),
   name: z.string(),
   description: z.string().nullable(),
-  status: z.string(),
+  status: knowledgeBaseStatusSchema,
   document_count: z.number().int().nonnegative(),
   segment_count: z.number().int().nonnegative(),
   embedding_model: z.string(),
+  chunk_method: chunkMethodSchema,
+  chunk_size: z.number().int().positive(),
+  chunk_overlap: z.number().int().nonnegative(),
+  retrieval_strategy: retrievalStrategySchema,
+  top_k: z.number().int().positive(),
+  similarity_threshold: z.number().min(0).max(1),
   created_by: z.string().nullable(),
   created_at: z.string(),
   updated_at: z.string(),
+})
+
+export const knowledgeDocumentSchema = z.object({
+  id: z.number().int().positive(),
+  knowledge_base_id: z.number().int().positive(),
+  file_name: z.string(),
+  file_type: z.string(),
+  file_size: z.string().nullable(),
+  minio_path: z.string().nullable(),
+  status: documentStatusSchema,
+  segment_count: z.number().int().nonnegative(),
+  word_count: z.number().int().nonnegative(),
+  error_message: z.string().nullable(),
+  uploaded_by: z.string().nullable(),
+  created_at: z.string(),
+  uploaded_at: z.string().nullable(),
+  processed_at: z.string().nullable(),
+  updated_at: z.string(),
+})
+
+export const knowledgeSegmentSchema = z.object({
+  id: z.number().int().positive(),
+  knowledge_base_id: z.number().int().positive(),
+  document_id: z.number().int().positive(),
+  position: z.number().int().nonnegative(),
+  content: z.string(),
+  word_count: z.number().int().nonnegative(),
+  token_count: z.number().int().nonnegative(),
+  keywords: z.array(z.string()).nullable(),
+  hit_count: z.number().int().nonnegative(),
+  created_at: z.string(),
+  updated_at: z.string(),
+})
+
+const segmentKeywordSchema = z
+  .string()
+  .trim()
+  .min(1, "关键词不能为空")
+  .max(100, "单个关键词不能超过 100 个字符")
+
+export const segmentUpdateSchema = z
+  .object({
+    content: z
+      .string()
+      .max(16_000, "分段内容不能超过 16000 个字符")
+      .refine((value) => Boolean(value.trim()), "分段内容不能为空")
+      .optional(),
+    keywords: z
+      .array(segmentKeywordSchema)
+      .max(100, "关键词不能超过 100 个")
+      .nullable()
+      .optional()
+      .transform((values) =>
+        values === undefined || values === null
+          ? values
+          : Array.from(new Set(values)),
+      ),
+  })
+  .strict()
+  .refine(
+    (value) => Object.values(value).some((item) => item !== undefined),
+    "至少提供一个要更新的字段",
+  )
+
+export const retrievalTestInputSchema = z
+  .object({
+    query: z
+      .string()
+      .trim()
+      .min(1, "请输入检索内容")
+      .max(10_000, "检索内容不能超过 10000 个字符"),
+    strategy: retrievalStrategySchema.default("hybrid"),
+    top_k: z.number().int().min(1).max(20).default(5),
+    similarity_threshold: z.number().min(0).max(1).default(0.7),
+  })
+  .strict()
+
+export const retrievalTestResultSchema = z.object({
+  segment_id: z.number().int().positive(),
+  document_id: z.number().int().positive(),
+  document_name: z.string(),
+  content: z.string(),
+  score: z.number().min(0).max(1),
+  position: z.number().int().nonnegative(),
 })
 
 export const agentTypeSchema = z.enum([
@@ -551,11 +778,6 @@ export const agentStatusSchema = z.enum([
   "inactive",
   "active",
   "error",
-])
-export const retrievalStrategySchema = z.enum([
-  "keyword",
-  "semantic",
-  "hybrid",
 ])
 
 export const agentModelConfigSchema = z
@@ -828,10 +1050,33 @@ export type ToolUpdateInput = z.input<typeof toolUpdateSchema>
 export type ToolTestInput = z.input<typeof toolTestInputSchema>
 export type ToolTestResult = z.infer<typeof toolTestResultSchema>
 export type ToolFormInput = z.input<typeof toolFormSchema>
+export type KnowledgeBaseStatus = z.infer<
+  typeof knowledgeBaseStatusSchema
+>
+export type DocumentStatus = z.infer<typeof documentStatusSchema>
+export type ChunkMethod = z.infer<typeof chunkMethodSchema>
+export type RetrievalStrategy = z.infer<typeof retrievalStrategySchema>
 export type KnowledgeBase = z.infer<typeof knowledgeBaseSchema>
+export type KnowledgeBaseCreateInput = z.input<
+  typeof knowledgeBaseCreateSchema
+>
+export type KnowledgeBaseUpdateInput = z.input<
+  typeof knowledgeBaseUpdateSchema
+>
+export type KnowledgeBaseConfigInput = z.input<
+  typeof knowledgeBaseConfigSchema
+>
+export type KnowledgeDocument = z.infer<typeof knowledgeDocumentSchema>
+export type KnowledgeSegment = z.infer<typeof knowledgeSegmentSchema>
+export type KnowledgeSegmentUpdateInput = z.input<
+  typeof segmentUpdateSchema
+>
+export type RetrievalTestInput = z.input<typeof retrievalTestInputSchema>
+export type RetrievalTestResult = z.infer<
+  typeof retrievalTestResultSchema
+>
 export type AgentType = z.infer<typeof agentTypeSchema>
 export type AgentStatus = z.infer<typeof agentStatusSchema>
-export type RetrievalStrategy = z.infer<typeof retrievalStrategySchema>
 export type AgentConfig = z.infer<typeof agentConfigSchema>
 export type Agent = z.infer<typeof agentSchema>
 export type AgentVersion = z.infer<typeof agentVersionSchema>

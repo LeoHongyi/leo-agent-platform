@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest"
 
 import {
+  knowledgeBaseConfigSchema,
+  knowledgeBaseCreateSchema,
+  knowledgeBaseSchema,
+  knowledgeBaseUpdateSchema,
+  knowledgeDocumentSchema,
+  knowledgeSegmentSchema,
   modelCreateSchema,
   modelSchema,
   modelUpdateSchema,
@@ -8,6 +14,9 @@ import {
   providerConnectionTestResultSchema,
   providerCreateSchema,
   providerSchema,
+  retrievalTestInputSchema,
+  retrievalTestResultSchema,
+  segmentUpdateSchema,
   userWithRolesSchema,
 } from "@/lib/api/schemas"
 
@@ -134,5 +143,135 @@ describe("OpenAPI schemas", () => {
     expect(
       modelUpdateSchema.safeParse({ description: null }).success,
     ).toBe(true)
+  })
+
+  it("parses the complete knowledge base response contract", () => {
+    const result = knowledgeBaseSchema.safeParse({
+      id: 3,
+      name: "产品知识库",
+      description: "产品说明",
+      status: "ready",
+      document_count: 2,
+      segment_count: 18,
+      embedding_model: "text-embedding-ada-002",
+      chunk_method: "paragraph",
+      chunk_size: 800,
+      chunk_overlap: 80,
+      retrieval_strategy: "hybrid",
+      top_k: 5,
+      similarity_threshold: 0.7,
+      created_by: "admin",
+      created_at: "2026-08-06T10:00:00",
+      updated_at: "2026-08-06T10:30:00",
+    })
+
+    expect(result.success).toBe(true)
+  })
+
+  it("applies knowledge defaults and enforces strict update rules", () => {
+    const create = knowledgeBaseCreateSchema.parse({
+      name: "  产品知识库  ",
+      description: "   ",
+    })
+
+    expect(create).toMatchObject({
+      name: "产品知识库",
+      description: null,
+      embedding_model: "text-embedding-ada-002",
+      chunk_method: "fixed",
+      chunk_size: 500,
+      chunk_overlap: 50,
+      retrieval_strategy: "hybrid",
+      top_k: 5,
+      similarity_threshold: 0.7,
+    })
+    expect(knowledgeBaseUpdateSchema.safeParse({}).success).toBe(false)
+    expect(knowledgeBaseConfigSchema.safeParse({}).success).toBe(false)
+    expect(
+      knowledgeBaseCreateSchema.safeParse({
+        name: "invalid overlap",
+        chunk_size: 200,
+        chunk_overlap: 200,
+      }).success,
+    ).toBe(false)
+    expect(
+      knowledgeBaseConfigSchema.safeParse({ unknown: true }).success,
+    ).toBe(false)
+  })
+
+  it("parses document and segment records and validates segment edits", () => {
+    expect(
+      knowledgeDocumentSchema.safeParse({
+        id: 9,
+        knowledge_base_id: 3,
+        file_name: "产品手册.pdf",
+        file_type: "pdf",
+        file_size: "2048",
+        minio_path: "knowledge-bases/3/products.pdf",
+        status: "completed",
+        segment_count: 9,
+        word_count: 2_048,
+        error_message: null,
+        uploaded_by: "admin",
+        created_at: "2026-08-06T10:00:00",
+        uploaded_at: "2026-08-06T10:00:00",
+        processed_at: "2026-08-06T10:01:00",
+        updated_at: "2026-08-06T10:01:00",
+      }).success,
+    ).toBe(true)
+    expect(
+      knowledgeSegmentSchema.safeParse({
+        id: 11,
+        knowledge_base_id: 3,
+        document_id: 9,
+        position: 0,
+        content: "产品支持混合检索。",
+        word_count: 1,
+        token_count: 8,
+        keywords: ["产品", "检索"],
+        hit_count: 0,
+        created_at: "2026-08-06T10:01:00",
+        updated_at: "2026-08-06T10:01:00",
+      }).success,
+    ).toBe(true)
+
+    expect(
+      segmentUpdateSchema.parse({ keywords: [" 产品 ", "产品"] }),
+    ).toEqual({ keywords: ["产品"] })
+    expect(segmentUpdateSchema.safeParse({ content: "   " }).success).toBe(
+      false,
+    )
+    expect(segmentUpdateSchema.safeParse({}).success).toBe(false)
+  })
+
+  it("validates retrieval inputs, defaults and scored results", () => {
+    expect(retrievalTestInputSchema.parse({ query: "  产品价格  " })).toEqual(
+      {
+        query: "产品价格",
+        strategy: "hybrid",
+        top_k: 5,
+        similarity_threshold: 0.7,
+      },
+    )
+    expect(
+      retrievalTestResultSchema.safeParse({
+        segment_id: 11,
+        document_id: 9,
+        document_name: "产品手册.pdf",
+        content: "产品价格请咨询销售。",
+        score: 0.82,
+        position: 0,
+      }).success,
+    ).toBe(true)
+    expect(
+      retrievalTestResultSchema.safeParse({
+        segment_id: 11,
+        document_id: 9,
+        document_name: "产品手册.pdf",
+        content: "invalid",
+        score: 1.1,
+        position: 0,
+      }).success,
+    ).toBe(false)
   })
 })
