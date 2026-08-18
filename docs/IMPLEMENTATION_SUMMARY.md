@@ -1,6 +1,6 @@
 # Implementation Summary
 
-Last verified: 2026-07-31
+Last verified: 2026-08-06
 
 This document summarizes the implementation currently prepared in the working branch. It is intended as a concise handoff companion to the repository README, project specification, and OpenAPI snapshot.
 
@@ -70,7 +70,9 @@ This document summarizes the implementation currently prepared in the working br
 - Explicit `pending → processing → completed|failed` document lifecycle and `empty|indexing|ready|error` knowledge-base lifecycle
 - Paginated document/segment administration and completed-document-only lexical retrieval testing
 - Schema, route, service, parser, task-orchestration, MinIO client, migration, and real MySQL/MinIO lifecycle verification
-- The administration-console page and true embedding/vector retrieval remain future work
+- Frontend knowledge-base CRUD, ingestion configuration, document lifecycle controls, segment administration, and retrieval testing
+- Multipart upload and binary download forwarding through the allowlisted Next.js BFF
+- True embedding/vector retrieval remains future work
 
 ### Agent Runtime
 
@@ -93,7 +95,7 @@ This document summarizes the implementation currently prepared in the working br
 - Same-origin BFF with explicit method/path allowlisting
 - JWT stored in an HttpOnly cookie
 - Protected dashboard routes
-- User, role, permission, provider, model, prompt, tool, and Agent management
+- User, role, permission, provider, model, prompt, tool, knowledge-base, and Agent management
 - TanStack Query remote-state caching and invalidation
 - Zustand client-only UI state
 - React Hook Form and Zod validation
@@ -138,8 +140,7 @@ The exact test count may grow as the codebase evolves; command success is the ma
 
 ## Known Boundaries
 
-- Knowledge-base APIs are implemented but do not yet have an administration-console page.
-- Agent RAG and retrieval tests use completed relational segments and lexical scoring. Embeddings, a vector index, and true semantic/hybrid re-ranking remain future work; semantic-only requests are rejected explicitly.
+- Agent RAG and knowledge-base retrieval tests use completed relational segments and lexical scoring. Embeddings, a vector index, and true semantic/hybrid re-ranking remain future work; semantic-only requests return business error `43011`, and hybrid retrieval currently uses the lexical candidate stage.
 - Agent function definitions are forwarded to model providers, but a server-side multi-step tool-execution loop is not implemented yet.
 - Task orchestration remains a future module.
 - Tool management currently supports real HTTP API tests; built-in and custom-function runtime executors remain future work.
@@ -148,7 +149,7 @@ The exact test count may grow as the codebase evolves; command success is the ma
 
 ## Recommended Next Steps
 
-1. Add embeddings/vector retrieval and the Knowledge Base administration page.
+1. Add embeddings, a vector index, and true semantic/hybrid re-ranking.
 2. Add a guarded multi-step tool-execution loop for Agent invocations.
 3. Add conversation history persistence and streaming Agent responses.
 4. Standardize backend HTTP status codes and error envelopes.

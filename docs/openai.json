@@ -6900,6 +6900,31 @@
         "title": "ProviderUpdate",
         "description": "更新供应商请求 — 所有字段可选"
       },
+      "ResponseSchema": {
+        "properties": {
+          "code": {
+            "type": "integer",
+            "title": "Code",
+            "default": 200
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "success"
+          },
+          "data": {
+            "anyOf": [
+              {},
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data"
+          }
+        },
+        "type": "object",
+        "title": "ResponseSchema"
+      },
       "ResponseSchema_AccessCodesResponse_": {
         "properties": {
           "code": {

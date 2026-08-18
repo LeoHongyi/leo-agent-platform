@@ -32,10 +32,11 @@ The repository currently provides authentication and RBAC, model provider and mo
 - Next.js 16 App Router, React 19, and strict TypeScript
 - Login with image CAPTCHA and an HttpOnly cookie session
 - Protected dashboard and same-origin BFF route allowlist
-- User, role, permission, provider, model, prompt, tool, and Agent management pages
+- User, role, permission, provider, model, prompt, tool, knowledge-base, and Agent management pages
 - Provider connection tests and masked API-key handling
 - Prompt publishing, version history, and rollback interactions
 - Tool registration, JSON configuration, state transitions, and live execution tests
+- Knowledge-base CRUD, ingestion configuration, document upload/status/download/retry/delete, segment administration, and retrieval testing
 - Agent aggregate configuration, version history, rollback, lifecycle control, and live invocation
 - TanStack Query for remote state and cache invalidation
 - Zustand for client-only UI state
